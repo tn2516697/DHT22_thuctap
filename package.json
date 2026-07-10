@@ -1,26 +1,28 @@
 {
   "name": "dht22_thuctap",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "directories": {
-    "lib": "lib",
-    "test": "test"
-  },
+  "description": "IoT monitoring system using ESP32, DHT22 sensor, Node.js, PostgreSQL and Render",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ESP32",
+    "DHT22",
+    "IoT",
+    "PostgreSQL",
+    "Render"
+  ],
+  "author": "TN2516697",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.22.0"
   }
-}
-"engines": {
-  "node": "22.x"
 }
