@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+<header>
+<h1>Real-time Dashboard</h1>
+<a href="index.html">
+Home
+</a>
+
+</header>
+<section class="container">
+<div class="grid">
+<div class="card sensor-card">
+<h3>
+🌡 Temperature
+</h3>
+<h2 id="temperature">
+-- °C
+</h2>
+</div>
+<div class="card sensor-card">
+<h3>
+💧 Humidity
+</h3>
+<h2 id="humidity">
+-- %
+</h2>
+</div>
+<div class="card sensor-card">
+<h3>
+🌀 Fan Status
+</h3>
+<h2 id="fan">
+OFF
+</h2>
+</div>
+<div class="card sensor-card">
+
+<h3>
+🔔 Alarm Status
+</h3>
+<h2 id="alarm">
+NORMAL
+</h2>
+</div>
+</div>
+
+<div class="card chart-box">
+<h2>
+Realtime Monitoring
+</h2>
+<canvas id="realtimeChart"></canvas>
+</div>
+</section>
+<script src="script.js"></script>
+</body>
+</html>

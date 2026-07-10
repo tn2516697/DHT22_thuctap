@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" 
+content="width=device-width, initial-scale=1.0">
+
+<title>
+History & Analytics
+</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+<body>
+<header>
+
+<h1>
+History & Data Analysis
+</h1>
+
+<a href="index.html">
+Home
+</a>
+
+</header>
+
+<section class="container">
+<div class="grid">
+<div class="card">
+
+<h3>
+Average Temperature
+</h3>
+
+<h2 id="avgTemp">
+--
+</h2>
+</div>
+<div class="card">
+<h3>
+Maximum Temperature
+</h3>
+<h2 id="maxTemp">
+--
+</h2>
+</div>
+<div class="card">
+<h3>
+Average Humidity
+</h3>
+<h2 id="avgHum">
+--
+</h2>
+</div>
+
+<div class="card">
+
+<h3>
+Alarm Trigger
+</h3>
+
+<h2 id="alarmCount">
+--
+</h2>
+</div>
+</div>
+
+<div class="card chart-box">
+<h2>
+Temperature History
+</h2>
+<canvas id="tempChart"></canvas>
+</div>
+<div class="card chart-box">
+<h2>
+Humidity History
+</h2>
+<canvas id="humChart"></canvas>
+</div>
+<div class="card">
+<h2>
+System Analysis
+</h2>
+<p id="analysis">
+
+Waiting data...
+</p>
+</div>
+
+<div class="card">
+
+<h2>
+Raw Data
+</h2>
+<table>
+<thead>
+<tr>
+
+<th>
+Time
+</th>
+
+<th>
+Temperature
+</th>
+
+<th>
+Humidity
+</th>
+
+<th>
+Fan
+</th>
+
+<th>
+Alarm
+</th>
+
+</tr>
+</thead>
+<tbody id="historyTable">
+</tbody>
+</table>
+</div>
+</section>
+
+<script src="script.js"></script>
+
+</body>
+</html>
