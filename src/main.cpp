@@ -16,8 +16,7 @@ const char* password = "12345677";
 // Render server
 
 String serverURL =
-"https://YOUR_RENDER_SERVER.onrender.com/data";
-// =====================
+"https://dht22-thuctap.onrender.com/data";
 // PIN CONFIG
 // =====================
 
