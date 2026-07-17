@@ -28,8 +28,8 @@ String serverURL =
 
 // Relay module thường kích LOW =====================
 
-#define RELAY_ON LOW
-#define RELAY_OFF HIGH
+#define RELAY_ON HIGH
+#define RELAY_OFF LOW
 
 // SENSOR =====================
 
@@ -54,7 +54,7 @@ Adafruit_SH1107 display
 );
 
 
-// VARIABLES =====================
+// biến =====================
 
 float temperature;
 float humidity;

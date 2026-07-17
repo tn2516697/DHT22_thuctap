@@ -1,0 +1,141 @@
+/* =====================================================
+   MOBILE.CSS
+   Áp dụng cho toàn bộ website
+===================================================== */
+
+@media screen and (max-width:768px){
+
+/* ---------- BODY ---------- */
+
+body{
+    font-size:14px;
+}
+
+.container{
+    width:96%;
+    margin:10px auto;
+}
+
+/* ---------- HEADER ---------- */
+
+header{
+    padding:12px;
+}
+
+header h1{
+    font-size:20px;
+    margin-bottom:6px;
+}
+
+header a{
+    font-size:14px;
+    margin:0 6px;
+}
+
+/* ---------- INTRO ---------- */
+
+.intro{
+    padding:14px;
+}
+
+.intro h2{
+    font-size:18px;
+    margin-bottom:8px;
+}
+
+.intro p{
+    font-size:13px;
+    line-height:1.4;
+}
+
+/* ---------- GRID ---------- */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+/* ---------- CARD ---------- */
+
+.card{
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:12px;
+}
+
+.card h2{
+    font-size:18px;
+}
+
+.card h3{
+    font-size:15px;
+}
+
+/* ---------- SENSOR ---------- */
+
+.sensor-card{
+    text-align:center;
+    padding:14px 8px;
+}
+
+.sensor-card h2{
+    font-size:28px;
+    margin-top:8px;
+}
+
+/* ---------- BUTTON ---------- */
+
+.button-area{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:15px;
+}
+
+.btn{
+    width:100%;
+    padding:12px;
+    text-align:center;
+}
+
+/* ---------- CHART ---------- */
+
+.chart-box{
+    width:100%;
+    padding:12px;
+}
+
+.chart-box h2{
+    font-size:17px;
+}
+
+canvas{
+    width:100% !important;
+    height:200px !important;
+}
+
+/* ---------- TABLE ---------- */
+
+table{
+    font-size:12px;
+    min-width:520px;
+}
+
+th,
+td{
+    padding:8px 6px;
+}
+
+.card:last-child{
+    overflow-x:auto;
+}
+
+/* ---------- FOOTER ---------- */
+
+footer{
+    padding:12px;
+    font-size:12px;
+}
+
+}
