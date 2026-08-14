@@ -461,10 +461,11 @@ app.use(
 
 app.listen(
     PORT,
+    "0.0.0.0",
     () => {
 
         console.log(
-            `🚀 Server running port ${PORT}`
+            `🚀 Server running on port ${PORT}`
         );
 
     }
