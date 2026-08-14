@@ -1,87 +1,260 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRANG CHỦ</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="mobile.css">
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Smart Environment Monitoring</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 
 <body>
 
-<header>
-    <h1>QUẢN LÝ NHIỆT ĐỘ - ĐỘ ẨM</h1>
+<div class="container">
 
-</header>
+    <!-- SIDEBAR -->
 
+    <aside class="sidebar">
 
-<section class="container">
-
-    <div class="card intro">
-
-        <h2>SƠ LƯỢT HỆ THỐNG</h2>
-        <p>
-         Hệ thống IOT sử dụng cảm biến dht22 để đo nhiệt độ và độ ẩm, dữ liệu được gửi về server và lưu trữ trong cơ sở dữ liệu PostgreSQL.
-        </p>
-
-        <p>
-            Hệ thống thu thập dữ liệu từ cảm biến, dựa vào đó để điều khiển các tải để điều hòa môi trường theo yêu cầu.
-        </p>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h3>🌡 Cảm biến</h3>
-            <p>DHT22</p>
-            <span>
-                Nhiệt độ & Độ ẩm
-            </span>
+        <div class="logo">
+            <i class="fa-solid fa-leaf"></i>
+            Smart <span>IoT</span>
         </div>
 
-        <div class="card">
-            <h3>🌀 Điều khiển Quạt</h3>
-            <p>Relay</p>
-            <span>
-                Tự động làm mát
-            </span>
-        </div>
+        <nav class="menu">
 
-        <div class="card">
-            <h3>🔔 Cảnh báo </h3>
-            <p>Chuông
+            <a class="active" href="index.html">
+                <i class="fa-solid fa-house"></i>
+                <span>Overview</span>
+            </a>
+
+            <a href="dashboard.html">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="history.html">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>History</span>
+            </a>
+
+        </nav>
+
+        <div class="device-box">
+
+            <h3>ESP32-C3 Device</h3>
+
+            <br>
+
+            <p id="deviceStatus">
+
+                <i class="fa-solid fa-circle"></i>
+
+                ESP32 Offline
+
             </p>
-            <span>
-                Cảnh báo môi trường
-            </span>
+
+            <p>AHT30 Sensor</p>
+
+            <br>
+
+            <small id="lastSeen">
+
+                Waiting for data...
+
+            </small>
+
         </div>
 
-        <div class="card">
-            <h3>☁ Cloud</h3>
-            <p>PostgreSQL  </p>
-            <span>
-                Data storage
-            </span>
-        </div>
+    </aside>
 
-    </div>
 
-    <div class="button-area">
-        <a href="dashboard.html" class="btn">
-            MỞ
-        </a>
+    <!-- MAIN -->
 
-        <a href="history.html" class="btn">
-            LỊCH SỬ
-        
-        </a>
-    </div>
+    <main class="main">
 
-</section>
-<footer>
-<p>
+        <header class="header">
 
-</p>
-</footer>
+            <div>
+
+                <h1>Smart Environment Monitoring</h1>
+
+                <p>
+                    ESP32-C3 + AHT30 Monitoring System
+                </p>
+
+            </div>
+
+            <div
+                class="status"
+                id="serverStatus">
+
+                🔴 Disconnected
+
+            </div>
+
+        </header>
+
+
+        <!-- SENSOR CARDS -->
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-title">
+                    🌡 Temperature
+                </div>
+
+                <div
+                    class="card-value"
+                    id="temperature">
+
+                    -- °C
+
+                </div>
+
+                <p
+                    class="normal"
+                    id="tempState">
+
+                    Waiting...
+
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    💧 Humidity
+                </div>
+
+                <div
+                    class="card-value"
+                    id="humidity">
+
+                    -- %
+
+                </div>
+
+                <p
+                    class="normal"
+                    id="humState">
+
+                    Waiting...
+
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    🌀 Cooling Fan
+                </div>
+
+                <div
+                    class="card-value"
+                    id="fan">
+
+                    OFF
+
+                </div>
+
+                <p id="fanMode">
+                    Relay Output
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    🔔 Alarm
+                </div>
+
+                <div
+                    class="card-value"
+                    id="alarm">
+
+                    OFF
+
+                </div>
+
+                <p id="alarmMode">
+                    Automatic
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- SYSTEM STATUS -->
+
+        <section class="panel">
+
+            <div class="panel-title">
+                System Status
+            </div>
+
+            <div class="status-grid">
+
+                <div class="status-item">
+
+                    <h3>Microcontroller</h3>
+
+                    <p id="espStatus">
+                        🔴 Offline
+                    </p>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <h3>Sensor</h3>
+
+                    <p id="sensorStatus">
+                        Waiting...
+                    </p>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <h3>Database</h3>
+
+                    <p>
+                        🟢 PostgreSQL
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
 </body>
 </html>

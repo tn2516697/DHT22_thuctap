@@ -1,128 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
 
 <meta charset="UTF-8">
 
-<meta name="viewport" 
+<meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>
-LỊCH SỬ</title>
+<title>History Data</title>
 
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
 
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
+
 <body>
-<header>
 
-<h1>
-LỊCH SỬ</h1>
+<div class="container">
 
-<a href="index.html">
-Trang chủ
-</a>
-<a href="dashboard.html">
-Thông tin
-</a>
-</header>
+    <!-- SIDEBAR -->
 
-<section class="container">
-<div class="grid">
-<div class="card">
+    <aside class="sidebar">
 
-<h3>
-Nhiệt độ trung bình</h3>
+        <div class="logo">
 
-<h2 id="avgTemp">
---
-</h2>
+            <i class="fa-solid fa-leaf"></i>
+
+            Smart <span>IoT</span>
+
+        </div>
+
+
+        <nav class="menu">
+
+            <a href="index.html">
+
+                <i class="fa-solid fa-house"></i>
+
+                <span>Overview</span>
+
+            </a>
+
+
+            <a href="dashboard.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                <span>Dashboard</span>
+
+            </a>
+
+
+            <a class="active"
+               href="history.html">
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                <span>History</span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="device-box">
+
+            <h3>ESP32-C3 Device</h3>
+
+            <br>
+
+            <p id="historyDeviceStatus">
+
+                <i class="fa-solid fa-circle"></i>
+
+                ESP32 Offline
+
+            </p>
+
+            <p>AHT30 Sensor</p>
+
+            <br>
+
+            <small id="historyLastSeen">
+
+                Waiting for data...
+
+            </small>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="header">
+
+            <div>
+
+                <h1>
+                    Historical Data
+                </h1>
+
+                <p>
+                    PostgreSQL Database
+                </p>
+
+            </div>
+
+            <div class="status">
+
+                Last 30 Days
+
+            </div>
+
+        </header>
+
+
+        <!-- CHART -->
+
+        <section class="panel">
+
+            <div class="panel-title">
+
+                Temperature & Humidity Trend
+
+            </div>
+
+            <div class="chart-medium">
+
+                <canvas id="historyChart"></canvas>
+
+            </div>
+
+        </section>
+
+
+        <!-- PREDICTION -->
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-title">
+                    🌡 Predicted Temperature
+                </div>
+
+                <div
+                    class="card-value"
+                    id="predictTemp">
+
+                    --
+
+                </div>
+
+                <p>
+                    Tomorrow Estimate
+                </p>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    💧 Predicted Humidity
+                </div>
+
+                <div
+                    class="card-value"
+                    id="predictHum">
+
+                    --
+
+                </div>
+
+                <p>
+                    Tomorrow Estimate
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- TABLE -->
+
+        <section class="panel">
+
+            <div class="panel-title">
+                History Table
+            </div>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date</th>
+
+                        <th>Average Temperature</th>
+
+                        <th>Average Humidity</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="historyTable">
+
+                </tbody>
+
+            </table>
+
+        </section>
+
+    </main>
+
 </div>
-<div class="card">
-<h3>
-Nhiệt đội tối đa</h3>
-<h2 id="maxTemp">
---
-</h2>
-</div>
-<div class="card">
-<h3>
-Độ ẩm trung bình</h3>
-<h2 id="avgHum">
---
-</h2>
-</div>
-
-<div class="card">
-
-<h3>
-Cảnh báo
-</h3>
-
-<h2 id="alarmCount">
---
-</h2>
-</div>
-</div>
-
-<div class="card chart-box">
-<h2>
-Biểu đồ nhiệt độ</h2>
-<canvas id="tempChart"></canvas>
-</div>
-<div class="card chart-box">
-<h2>
-Biểu đồ độ ẩm
-</h2>
-<canvas id="humChart"></canvas>
-</div>
-<div class="card">
-<h2>
-Phân tích hệ thống</h2>
-<p id="analysis">
-
-Chờ dữ liệu</p>
-</div>
-
-<div class="card">
-
-<h2>
-Dữ liệu gốc </h2>
-<table>
-<thead>
-<tr>
-
-<th>
-Thời gian
-</th>
-
-<th>
-Nhiệt độ
-</th>
-
-<th>
-Độ ẩm
-</th>
-
-<th>
-Quạt
-</th>
-
-<th>
-Chuông
-</th>
-
-</tr>
-</thead>
-<tbody id="historyTable">
-</tbody>
-</table>
-</div>
-</section>
 
 <script src="script.js"></script>
 

@@ -1,73 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Dữ liệu</title>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Realtime Dashboard</title>
+
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
+
 <body>
-<header>
-<h1>MÔI TRƯỜNG THEO THỜI GIAN THỰC</h1>
-<a href="index.html">
-Trang chủ
 
-</a>
-<a href="history.html">
-Lịch sử
-</a>
+<div class="container">
 
-</header>
-<section class="container">
-<div class="grid">
-<div class="card sensor-card">
-<h3>
-🌡 Nhiệt độ
-</h3>
-<h2 id="temperature">
--- °C
-</h2>
-</div>
-<div class="card sensor-card">
-<h3>
-💧 Độ ẩm
-</h3>
-<h2 id="humidity">
--- %
-</h2>
-</div>
-<div class="card sensor-card">
-<h3>
-🌀 Quạt
-</h3>
-<h2 id="fan">
-Tắt
-</h2>
-</div>
-<div class="card sensor-card">
+    <!-- SIDEBAR -->
 
-<h3>
-🔔 Cảnh báo
-</h3>
-<h2 id="alarm">
-Bình thường
-</h2>
-</div>
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <i class="fa-solid fa-leaf"></i>
+
+            Smart <span>IoT</span>
+
+        </div>
+
+        <nav class="menu">
+
+            <a href="index.html">
+
+                <i class="fa-solid fa-house"></i>
+
+                <span>Overview</span>
+
+            </a>
+
+            <a class="active"
+               href="dashboard.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                <span>Dashboard</span>
+
+            </a>
+
+            <a href="history.html">
+
+                <i class="fa-solid fa-clock-rotate-left"></i>
+
+                <span>History</span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="device-box">
+
+            <h3>ESP32-C3 Device</h3>
+
+            <br>
+
+            <p id="dashboardDeviceStatus">
+
+                <i class="fa-solid fa-circle"></i>
+
+                ESP32 Offline
+
+            </p>
+
+            <p>AHT30 Sensor</p>
+
+            <br>
+
+            <small id="dashboardLastSeen">
+
+                Waiting for data...
+
+            </small>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="header">
+
+            <div>
+
+                <h1>
+                    Realtime Dashboard
+                </h1>
+
+                <p>
+                    Live Environment Monitoring
+                </p>
+
+            </div>
+
+            <div
+                class="status"
+                id="dashboardServerStatus">
+
+                🔴 Waiting Connection
+
+            </div>
+
+        </header>
+
+
+        <!-- STATUS CARDS -->
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-title">
+                    🌡 Temperature
+                </div>
+
+                <div
+                    class="card-value"
+                    id="dashboardTemp">
+
+                    -- °C
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    💧 Humidity
+                </div>
+
+                <div
+                    class="card-value"
+                    id="dashboardHum">
+
+                    -- %
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    🌀 Cooling Fan
+                </div>
+
+                <div
+                    class="card-value"
+                    id="fanStatus">
+
+                    OFF
+
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    🔔 Alarm
+                </div>
+
+                <div
+                    class="card-value"
+                    id="alarmStatus">
+
+                    OFF
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- REALTIME CHARTS -->
+
+        <section class="chart-grid">
+
+            <div class="panel">
+
+                <div class="panel-title">
+                    🌡 Temperature Realtime
+                </div>
+
+                <div class="chart-small">
+
+                    <canvas id="tempChart"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-title">
+                    💧 Humidity Realtime
+                </div>
+
+                <div class="chart-small">
+
+                    <canvas id="humidityChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MONITORING STATUS -->
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Monitoring Status
+            </div>
+
+            <div class="status-grid">
+
+                <div class="status-item">
+
+                    <h3>ESP32-C3</h3>
+
+                    <p id="espRealtime">
+                        🔴 Offline
+                    </p>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <h3>Last Update</h3>
+
+                    <p id="lastUpdate">
+                        --
+                    </p>
+
+                </div>
+
+
+                <div class="status-item">
+
+                    <h3>Data Stream</h3>
+
+                    <p id="streamStatus">
+                        Waiting...
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
 </div>
 
-<div class="card chart-box">
-<h2>
-Biểu đồ theo thời gian thực
-</h2>
-<canvas id="realtimeChart"></canvas>
-</div>
-</section>
 <script src="script.js"></script>
+
 </body>
 </html>

@@ -1,141 +1,561 @@
-/* =====================================================
-   MOBILE.CSS
-   Áp dụng cho toàn bộ website
-===================================================== */
+/* =====================================
+   SMART IOT MOBILE APP STYLE
+   ESP32 + DHT22
+===================================== */
 
-@media screen and (max-width:768px){
 
-/* ---------- BODY ---------- */
+@media(max-width:768px){
+
+
+/* =========================
+   GLOBAL
+========================= */
+
 
 body{
-    font-size:14px;
+
+    background:
+    linear-gradient(
+        160deg,
+        #07111f,
+        #132d46
+    );
+
 }
+
 
 .container{
-    width:96%;
-    margin:10px auto;
+
+    display:block;
+
 }
 
-/* ---------- HEADER ---------- */
 
-header{
+
+
+/* =========================
+   FLOAT MENU
+========================= */
+
+
+.sidebar{
+
+    position:fixed;
+
+    left:15px;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+    width:auto;
+
+    padding:0;
+
+    background:none;
+
+    border:none;
+
+    z-index:1000;
+
+}
+
+
+
+.logo,
+.device-box{
+
+    display:none;
+
+}
+
+
+
+.menu{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+
+}
+
+
+
+.menu a{
+
+
+    width:52px;
+
+    height:52px;
+
+    border-radius:50%;
+
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+
+    padding:0;
+
+
+    background:
+
+    rgba(255,255,255,0.12);
+
+
+    backdrop-filter:blur(10px);
+
+
+    box-shadow:
+    0 5px 20px rgba(0,0,0,0.4);
+
+
+    font-size:0;
+
+}
+
+
+
+.menu a i{
+
+    font-size:22px;
+
+    margin:0;
+
+}
+
+
+
+.menu a.active{
+
+    background:#00e5ff;
+
+    color:#00131c;
+
+}
+
+
+
+
+
+
+/* =========================
+   MAIN
+========================= */
+
+
+.main{
+
+    padding:15px 15px 20px 80px;
+
+}
+
+
+
+
+/* =========================
+   HEADER
+========================= */
+
+
+.header{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:12px;
+
+}
+
+
+
+.header h1{
+
+    font-size:28px;
+
+    line-height:1.2;
+
+}
+
+
+.header p{
+
+    font-size:15px;
+
+    color:#aab7c4;
+
+}
+
+
+.status{
+
+
+    width:100%;
+
+    text-align:center;
+
     padding:12px;
+
+
+    font-size:16px;
+
+
+    background:
+
+    rgba(0,255,130,0.15);
+
+
+    border:
+    1px solid rgba(0,255,130,0.4);
+
 }
 
-header h1{
-    font-size:20px;
-    margin-bottom:6px;
-}
 
-header a{
-    font-size:14px;
-    margin:0 6px;
-}
 
-/* ---------- INTRO ---------- */
 
-.intro{
-    padding:14px;
-}
 
-.intro h2{
-    font-size:18px;
-    margin-bottom:8px;
-}
+/* =========================
+   CARDS
+========================= */
 
-.intro p{
-    font-size:13px;
-    line-height:1.4;
-}
 
-/* ---------- GRID ---------- */
+.cards{
 
-.grid{
+
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:12px;
+
+
+    margin-top:20px;
+
+
 }
 
-/* ---------- CARD ---------- */
+
+
 
 .card{
-    padding:12px;
-    margin-bottom:10px;
-    border-radius:12px;
+
+
+    padding:18px;
+
+
+    min-height:130px;
+
+
+    background:
+
+
+    linear-gradient(
+        145deg,
+        rgba(255,255,255,0.18),
+        rgba(255,255,255,0.05)
+    );
+
+
+    border-radius:18px;
+
+
 }
 
-.card h2{
-    font-size:18px;
+
+
+
+.card-title{
+
+
+    font-size:14px;
+
+
+    color:#d0d8df;
+
+
 }
 
-.card h3{
-    font-size:15px;
+
+
+
+.card-value{
+
+
+    font-size:32px;
+
+
+    margin:15px 0;
+
+
+    font-weight:700;
+
+
 }
 
-/* ---------- SENSOR ---------- */
 
-.sensor-card{
-    text-align:center;
-    padding:14px 8px;
+
+
+.card:nth-child(1)
+.card-value{
+
+    color:#ffcc66;
+
 }
 
-.sensor-card h2{
-    font-size:28px;
-    margin-top:8px;
+
+
+.card:nth-child(2)
+.card-value{
+
+    color:#55d9ff;
+
 }
 
-/* ---------- BUTTON ---------- */
 
-.button-area{
+
+
+
+/* =========================
+   PANELS
+========================= */
+
+
+.panel{
+
+
+    margin-top:18px;
+
+
+    padding:18px;
+
+
+    background:
+
+
+    rgba(255,255,255,0.12);
+
+
+    border-radius:20px;
+
+
+}
+
+
+
+.panel-title{
+
+
+    font-size:20px;
+
+
+    font-weight:600;
+
+
+    margin-bottom:15px;
+
+
+}
+
+
+
+
+
+/* =========================
+   STATUS
+========================= */
+
+
+.status-grid{
+
+
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-    margin-top:15px;
+
+
+    grid-template-columns:1fr;
+
+
+    gap:12px;
+
+
 }
 
-.btn{
-    width:100%;
-    padding:12px;
-    text-align:center;
+
+
+.status-item{
+
+
+    padding:18px;
+
+
+    background:
+
+
+    rgba(0,0,0,0.25);
+
+
+    border-radius:15px;
+
+
 }
 
-/* ---------- CHART ---------- */
+
+
+.status-item h3{
+
+
+    font-size:15px;
+
+
+    color:#b8c5d1;
+
+
+}
+
+
+
+.status-item p{
+
+
+    font-size:22px;
+
+
+    margin-top:8px;
+
+
+}
+
+
+
+
+
+/* =========================
+   CHART
+========================= */
+
 
 .chart-box{
-    width:100%;
-    padding:12px;
+
+
+    height:240px;
+
+
 }
 
-.chart-box h2{
-    font-size:17px;
+
+
+
+
+/* =========================
+   HISTORY TABLE
+========================= */
+
+
+.panel:has(table){
+
+    overflow-x:auto;
+
 }
 
-canvas{
-    width:100% !important;
-    height:200px !important;
-}
 
-/* ---------- TABLE ---------- */
 
 table{
-    font-size:12px;
-    min-width:520px;
+
+    min-width:550px;
+
 }
 
-th,
-td{
-    padding:8px 6px;
-}
 
-.card:last-child{
-    overflow-x:auto;
-}
 
-/* ---------- FOOTER ---------- */
+th,td{
 
-footer{
+
+    font-size:14px;
+
     padding:12px;
-    font-size:12px;
+
 }
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+/* =================================
+   VERY SMALL PHONE
+================================= */
+
+
+@media(max-width:420px){
+
+
+
+.main{
+
+    padding-left:75px;
+
+}
+
+
+
+.header h1{
+
+    font-size:24px;
+
+}
+
+
+
+.cards{
+
+    grid-template-columns:1fr;
+
+}
+
+
+
+.card-value{
+
+    font-size:30px;
+
+}
+
+
+
+.menu a{
+
+
+    width:46px;
+
+    height:46px;
+
+
+}
+
+
+.menu a i{
+
+    font-size:19px;
+
+}
+
 
 }

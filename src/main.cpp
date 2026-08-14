@@ -1,70 +1,87 @@
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-#include <DHT.h>
-
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
+#include <Adafruit_AHTX0.h>
 
 // =====================
 // WIFI
 // =====================
 const char* ssid = "Hello";
 const char* password = "12345677";
+
 // Render server
 String serverURL =
-"https://dht22-thuctap.onrender.com/data";
+    "https://dht22-thuctap.onrender.com/data";
 
-// PIN CONFIG =====================
 
-#define DHT_PIN 2
-#define RELAY_PIN 5
-#define BUZZER_PIN 6
+// =====================
+// PIN CONFIG
+// =====================
 
-#define SDA_PIN 21
-#define SCL_PIN 20
+// ESP32-C3 Super Mini
+#define RELAY_PIN   5
+#define BUZZER_PIN  6
 
-// Relay module thường kích LOW =====================
+// I2C
+#define SDA_PIN     8
+#define SCL_PIN     9
 
-#define RELAY_ON HIGH
+
+// =====================
+// RELAY CONFIG
+// =====================
+
+// Theo schematic hiện tại:
+// GPIO5 HIGH -> transistor kích relay -> Relay ON
+#define RELAY_ON  HIGH
 #define RELAY_OFF LOW
 
-// SENSOR =====================
 
-#define DHTTYPE DHT22
+// =====================
+// AHT30 SENSOR
+// =====================
 
-DHT dht
-(
-    DHT_PIN,
-    DHTTYPE
-);
+Adafruit_AHTX0 aht;
 
-// OLED SH1107 =====================
+sensors_event_t humidityEvent;
+sensors_event_t temperatureEvent;
 
-#define SCREEN_WIDTH 128
+
+// =====================
+// OLED SH1107
+// =====================
+
+#define SCREEN_WIDTH  128
 #define SCREEN_HEIGHT 64
 
-Adafruit_SH1107 display
-(
+Adafruit_SH1107 display(
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
     &Wire
 );
 
 
-// biến =====================
+// =====================
+// VARIABLES
+// =====================
 
-float temperature;
-float humidity;
+float temperature = 0;
+float humidity = 0;
 
-bool fanState=false;
-bool buzzerState=false;
+bool fanState = false;
+bool buzzerState = false;
 
-unsigned long lastSend=0;
+unsigned long lastSend = 0;
 
-// WIFI CONNECT =====================
+
+// =====================
+// WIFI CONNECT
+// =====================
 
 void connectWiFi()
 {
@@ -73,273 +90,327 @@ void connectWiFi()
         password
     );
 
-    Serial.print(
-        "Connecting WiFi"
-    );
+    Serial.print("Connecting WiFi");
 
-    while
-    (
-        WiFi.status()!=WL_CONNECTED
-    )
-
+    while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(".");
     }
 
     Serial.println();
-    Serial.println
-    (
-        "WiFi Connected"
-    );
+    Serial.println("WiFi Connected");
+
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
 }
 
-// OLED DISPLAY =====================
+
+// =====================
+// OLED DISPLAY
+// =====================
 
 void showOLED()
 {
     display.clearDisplay();
+
     display.setTextSize(1);
-    display.setTextColor
-    (
-        SH110X_WHITE
-    );
-    display.setCursor
-    (
-        0,
-        0
-    );
+    display.setTextColor(SH110X_WHITE);
 
-    display.print
-    (
-        "DHT22 MONITOR"
-    );
-    display.setCursor
-    (
-        0,
-        15
-    );
+    // Title
+    display.setCursor(0, 0);
+    display.print("AHT30 MONITOR");
 
+    // Temperature
+    display.setCursor(0, 15);
     display.print("TEMP: ");
-    display.print(temperature);
+    display.print(temperature, 2);
     display.println(" C");
-    display.setCursor
-    (
-        0,
-        30
-    );
+
+    // Humidity
+    display.setCursor(0, 30);
     display.print("HUM : ");
-    display.print(humidity );
+    display.print(humidity, 2);
     display.println(" %");
 
-    display.setCursor(
-        0,
-        45
-    );
+    // Fan
+    display.setCursor(0, 45);
     display.print("FAN:");
-    display.print
-    ( fanState?
-        "ON":
-        "OFF"
+    display.print(
+        fanState ? "ON" : "OFF"
     );
 
+    // Buzzer
     display.print(" ALM:");
-    display.print
-    (
-        buzzerState?
-        "ON":
-        "OFF"
+    display.print(
+        buzzerState ? "ON" : "OFF"
     );
+
     display.display();
 }
 
-// SEND SERVER =====================
+
+// =====================
+// SEND DATA TO SERVER
+// =====================
 
 void sendData()
 {
-    if(
-        WiFi.status()
-        ==
-        WL_CONNECTED
-    )
+    if (WiFi.status() == WL_CONNECTED)
     {
         HTTPClient http;
-        http.begin
-        (
-            serverURL
-        );
 
-        http.addHeader
-        (
+        http.begin(serverURL);
+
+        http.addHeader(
             "Content-Type",
             "application/json"
         );
 
         String json = "{";
 
-        json +="\"temperature\":";
-        json += temperature;
+        json += "\"temperature\":";
+        json += String(temperature, 2);
 
-        json +=",\"humidity\":";
-        json += humidity;
+        json += ",\"humidity\":";
+        json += String(humidity, 2);
 
-        json +=",\"fan\":";
-        json += fanState?
-        "true":
-        "false";
+        json += ",\"fan\":";
+        json += fanState ? "true" : "false";
 
-        json +=",\"buzzer\":";
-        json +=buzzerState?
-        "true":
-        "false";
+        json += ",\"buzzer\":";
+        json += buzzerState ? "true" : "false";
+
         json += "}";
 
         int code = http.POST(json);
 
-        Serial.println
-        (
-            json
-        );
+        Serial.println();
+        Serial.println("SEND DATA:");
+        Serial.println(json);
 
-        Serial.print
-        (
-            "HTTP:"
-        );
+        Serial.print("HTTP: ");
+        Serial.println(code);
 
-        Serial.println
-        (
-            code
-        );
         http.end();
+    }
+    else
+    {
+        Serial.println("WiFi disconnected");
     }
 }
 
-// SETUP =====================
+
+// =====================
+// SETUP
+// =====================
 
 void setup()
 {
     Serial.begin(115200);
-    pinMode
-    (
+
+    // ---------------------
+    // GPIO
+    // ---------------------
+
+    pinMode(
         RELAY_PIN,
         OUTPUT
     );
 
-    pinMode
-    (
+    pinMode(
         BUZZER_PIN,
         OUTPUT
     );
 
-    digitalWrite
-    (
+    // Tắt relay lúc khởi động
+    digitalWrite(
         RELAY_PIN,
         RELAY_OFF
     );
 
-    digitalWrite
-    (
+    // Tắt buzzer lúc khởi động
+    digitalWrite(
         BUZZER_PIN,
         LOW
     );
 
-    Wire.begin
-    (
+
+    // ---------------------
+    // I2C
+    // ---------------------
+
+    Wire.begin(
         SDA_PIN,
         SCL_PIN
     );
 
-    display.begin
-    (
-        0x3C,
-        true
-    );
 
-    display.clearDisplay();
-    display.display();
-    dht.begin();
+    // ---------------------
+    // OLED
+    // ---------------------
+
+    if (!display.begin(0x3C, true))
+    {
+        Serial.println("OLED ERROR");
+    }
+    else
+    {
+        display.clearDisplay();
+        display.setTextSize(1);
+        display.setTextColor(SH110X_WHITE);
+        display.setCursor(0, 20);
+        display.println("Starting...");
+        display.display();
+    }
+
+
+    // ---------------------
+    // AHT30
+    // ---------------------
+
+    if (!aht.begin())
+    {
+        Serial.println("AHT30 ERROR");
+
+        display.clearDisplay();
+        display.setCursor(0, 20);
+        display.println("AHT30 ERROR");
+        display.display();
+
+        while (1)
+        {
+            delay(1000);
+        }
+    }
+
+    Serial.println("AHT30 OK");
+
+
+    // ---------------------
+    // WIFI
+    // ---------------------
+
     connectWiFi();
 }
 
-// LOOP =====================
+
+// =====================
+// LOOP
+// =====================
 
 void loop()
 {
-    temperature = dht.readTemperature();
-    humidity = dht.readHumidity();
+    // =====================
+    // READ AHT30
+    // =====================
 
-    if
-    (
-        isnan(temperature)
-        ||
+    aht.getEvent(
+        &humidityEvent,
+        &temperatureEvent
+    );
+
+    temperature = temperatureEvent.temperature;
+    humidity = humidityEvent.relative_humidity;
+
+
+    // =====================
+    // CHECK SENSOR
+    // =====================
+
+    if (
+        isnan(temperature) ||
         isnan(humidity)
     )
     {
-        Serial.println
-        (
-            "DHT ERROR"
-        );
+        Serial.println("AHT30 ERROR");
 
         display.clearDisplay();
+
         display.setCursor(
             0,
             20
         );
-        display.println("DHT ERROR");
+
+        display.println(
+            "AHT30 ERROR"
+        );
+
         display.display();
+
         delay(2000);
+
         return;
     }
 
+
+    // =====================
     // FAN CONTROL
-    if
-    (
-        temperature >= 30
-    )
+    // =====================
+
+    if (temperature >= 30.0)
     {
-        fanState=true;
-        digitalWrite
-        (
+        fanState = true;
+
+        digitalWrite(
             RELAY_PIN,
             RELAY_ON
         );
     }
-
     else
     {
-        fanState=false;
-        digitalWrite
-        (
+        fanState = false;
+
+        digitalWrite(
             RELAY_PIN,
             RELAY_OFF
         );
     }
 
+
+    // =====================
     // BUZZER
-    if(temperature >=40)
+    // =====================
+
+    if (temperature >= 40.0)
     {
-        buzzerState=true;
-        digitalWrite
-        (
+        buzzerState = true;
+
+        digitalWrite(
             BUZZER_PIN,
             HIGH
         );
     }
-
     else
     {
-        buzzerState=false;
+        buzzerState = false;
+
         digitalWrite(
             BUZZER_PIN,
             LOW
         );
     }
 
+
+    // =====================
+    // OLED
+    // =====================
+
     showOLED();
-    if(millis()-lastSend > 3000)
+
+
+    // =====================
+    // SEND SERVER
+    // =====================
+
+    if (millis() - lastSend > 3000)
     {
         sendData();
-        lastSend=millis();
+
+        lastSend = millis();
     }
+
+
     delay(1000);
 }
+
