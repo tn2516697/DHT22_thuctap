@@ -12,8 +12,7 @@ const { Pool } = require("pg");
 
 const app = express();
 
-const PORT =
-    process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 
 /* ==========================
@@ -26,10 +25,7 @@ app.use(express.json());
 
 app.use(
     express.static(
-        path.join(
-            __dirname,
-            "../web"
-        )
+        path.join(__dirname, "../web")
     )
 );
 
@@ -45,12 +41,10 @@ const pool = new Pool({
 
     ssl:
         process.env.DATABASE_URL
-        ?
-        {
-            rejectUnauthorized:false
-        }
-        :
-        false
+            ? {
+                rejectUnauthorized: false
+            }
+            : false
 });
 
 
@@ -58,9 +52,7 @@ pool.connect()
 
 .then(client => {
 
-    console.log(
-        "✅ PostgreSQL Connected"
-    );
+    console.log("✅ PostgreSQL Connected");
 
     client.release();
 
@@ -96,15 +88,12 @@ async function createTable()
 
             buzzer BOOLEAN DEFAULT false,
 
-            timestamp TIMESTAMP
-                DEFAULT CURRENT_TIMESTAMP
+            timestamp TIMESTAMPTZ NOT NULL
         )
 
     `);
 
-    console.log(
-        "✅ sensor_data ready"
-    );
+    console.log("✅ sensor_data ready");
 }
 
 
@@ -115,9 +104,13 @@ async function createTable()
         await createTable();
 
     }
+
     catch(err) {
 
-        console.error(err);
+        console.error(
+            "Create table error:",
+            err
+        );
 
     }
 
@@ -138,6 +131,8 @@ let latestData = {
 
     buzzer: false,
 
+    timestamp: null,
+
     lastUpdate: null
 
 };
@@ -151,8 +146,167 @@ let clients = [];
 
 
 /* ==========================
+   SAVE SENSOR DATA
+========================== */
+
+async function saveSensorData(data)
+{
+
+    if (
+        data.temperature === undefined ||
+        data.humidity === undefined
+    )
+    {
+        throw new Error(
+            "Dữ liệu cảm biến không hợp lệ"
+        );
+    }
+
+
+    const temperature =
+        Number(data.temperature);
+
+    const humidity =
+        Number(data.humidity);
+
+    const fan =
+        Boolean(data.fan);
+
+    const buzzer =
+        Boolean(data.buzzer);
+
+
+    let timestamp;
+
+
+    /*
+       Nếu ESP32 gửi timestamp
+       → dùng timestamp của ESP32.
+
+       Nếu không có
+       → dùng thời gian server.
+    */
+
+    if (data.timestamp)
+    {
+
+        timestamp =
+            new Date(data.timestamp);
+
+
+        if (
+            isNaN(timestamp.getTime())
+        )
+        {
+
+            timestamp =
+                new Date();
+
+        }
+
+    }
+
+    else
+    {
+
+        timestamp =
+            new Date();
+
+    }
+
+
+    /* ==========================
+       LƯU DATABASE
+    ========================== */
+
+    await pool.query(
+
+        `
+        INSERT INTO sensor_data
+        (
+            temperature,
+            humidity,
+            fan,
+            buzzer,
+            timestamp
+        )
+
+        VALUES
+        ($1,$2,$3,$4,$5)
+        `,
+
+        [
+            temperature,
+            humidity,
+            fan,
+            buzzer,
+            timestamp
+        ]
+
+    );
+
+
+    return {
+
+        temperature,
+
+        humidity,
+
+        fan,
+
+        buzzer,
+
+        timestamp:
+            timestamp.toISOString(),
+
+        /*
+         * Thời điểm server nhận dữ liệu.
+         * Dùng để xác định ESP32 Online/Offline.
+         */
+
+        lastUpdate:
+            Date.now()
+
+    };
+
+}
+
+
+/* ==========================
+   GỬI SSE
+========================== */
+
+function broadcast(data)
+{
+
+    clients.forEach(
+        client => {
+
+            try {
+
+                client.write(
+                    `data:${JSON.stringify(data)}\n\n`
+                );
+
+            }
+
+            catch(error) {
+
+                console.log(
+                    "SSE client error"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ==========================
    POST /data
-   ESP32 SEND DATA
+   ESP32 GỬI DỮ LIỆU
 ========================== */
 
 app.post(
@@ -165,99 +319,112 @@ app.post(
                 req.body;
 
 
+            /* ==========================
+               MỘT BẢN GHI
+            ========================== */
+
             if (
-                data.temperature === undefined ||
-                data.humidity === undefined
+                !Array.isArray(data)
             )
             {
-                return res
-                    .status(400)
-                    .json({
-                        error:
-                            "Invalid data"
-                    });
+
+                console.log(
+                    "ESP32-C3:",
+                    data
+                );
+
+
+                const saved =
+                    await saveSensorData(
+                        data
+                    );
+
+
+                latestData =
+                    saved;
+
+
+                broadcast(
+                    latestData
+                );
+
+
+                return res.json({
+
+                    status: "OK",
+
+                    count: 1
+
+                });
+
             }
 
 
+            /* ==========================
+               NHIỀU BẢN GHI
+            ========================== */
+
             console.log(
-                "ESP32-C3:",
-                data
+                `ESP32-C3: nhận ${data.length} bản ghi`
             );
 
 
-            latestData = {
+            if (
+                data.length === 0
+            )
+            {
 
-                temperature:
-                    Number(
-                        data.temperature
-                    ),
+                return res.json({
 
-                humidity:
-                    Number(
-                        data.humidity
-                    ),
+                    status: "OK",
 
-                fan:
-                    Boolean(
-                        data.fan
-                    ),
+                    count: 0
 
-                buzzer:
-                    Boolean(
-                        data.buzzer
-                    ),
+                });
 
-                lastUpdate:
-                    Date.now()
-
-            };
+            }
 
 
-            /* SAVE DATABASE */
-
-            await pool.query(
-
-                `
-                INSERT INTO sensor_data
-                (
-                    temperature,
-                    humidity,
-                    fan,
-                    buzzer
-                )
-
-                VALUES
-                ($1,$2,$3,$4)
-                `,
-
-                [
-                    latestData.temperature,
-                    latestData.humidity,
-                    latestData.fan,
-                    latestData.buzzer
-                ]
-
-            );
+            let lastSaved = null;
 
 
-            /* SEND SSE */
+            for (
+                const record of data
+            )
+            {
 
-            clients.forEach(
-                client => {
-
-                    client.write(
-                        `data:${JSON.stringify(
-                            latestData
-                        )}\n\n`
+                lastSaved =
+                    await saveSensorData(
+                        record
                     );
 
-                }
+            }
+
+
+            if (lastSaved)
+            {
+
+                latestData =
+                    lastSaved;
+
+            }
+
+
+            /*
+             * Chỉ gửi bản ghi cuối cùng
+             * qua SSE.
+             */
+
+            broadcast(
+                latestData
             );
 
 
-            res.json({
+            return res.json({
 
-                status:"OK"
+                status: "OK",
+
+                count: data.length
 
             });
 
@@ -265,14 +432,22 @@ app.post(
 
         catch(error)
         {
-            console.log(error);
+
+            console.log(
+                "POST /data ERROR:",
+                error
+            );
+
 
             res
                 .status(500)
                 .json({
+
                     error:
                         error.message
+
                 });
+
         }
 
     }
@@ -290,6 +465,73 @@ app.get(
         res.json(
             latestData
         );
+
+    }
+);
+
+
+/* ==========================
+   GET /realtime
+   2 GIỜ GẦN NHẤT
+========================== */
+
+app.get(
+    "/realtime",
+    async (req,res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+
+                    SELECT
+
+                        temperature,
+
+                        humidity,
+
+                        fan,
+
+                        buzzer,
+
+                        timestamp
+
+                    FROM sensor_data
+
+                    WHERE timestamp >=
+                        NOW() - INTERVAL '2 hours'
+
+                    ORDER BY
+                        timestamp ASC
+
+                `);
+
+
+            res.json(
+                result.rows
+            );
+
+        }
+
+        catch(error)
+        {
+
+            console.log(
+                "Realtime error:",
+                error
+            );
+
+
+            res
+                .status(500)
+                .json({
+
+                    error:
+                        error.message
+
+                });
+
+        }
 
     }
 );
@@ -315,17 +557,25 @@ app.get(
 
                 "Connection":
                     "keep-alive"
+
             }
         );
 
 
-        /* gửi dữ liệu hiện tại */
+        /*
+         * Gửi dữ liệu hiện tại
+         */
 
-        res.write(
-            `data:${JSON.stringify(
-                latestData
-            )}\n\n`
-        );
+        if (latestData.lastUpdate)
+        {
+
+            res.write(
+                `data:${JSON.stringify(
+                    latestData
+                )}\n\n`
+            );
+
+        }
 
 
         clients.push(res);
@@ -350,6 +600,7 @@ app.get(
 
 /* ==========================
    HISTORY
+   30 NGÀY
 ========================== */
 
 app.get(
@@ -359,41 +610,45 @@ app.get(
         try {
 
             const result =
-                await pool.query(
-
-                    `
+                await pool.query(`
 
                     SELECT
 
-                    DATE(timestamp)
-                    AS date,
+                        (
+                            timestamp
+                            AT TIME ZONE
+                            'Asia/Ho_Chi_Minh'
+                        )::date
+                        AS date,
 
-                    ROUND(
-                        AVG(temperature)::numeric,
-                        2
-                    )
-                    AS avg_temperature,
+                        ROUND(
+                            AVG(temperature)::numeric,
+                            2
+                        )
+                        AS avg_temperature,
 
-                    ROUND(
-                        AVG(humidity)::numeric,
-                        2
-                    )
-                    AS avg_humidity
+                        ROUND(
+                            AVG(humidity)::numeric,
+                            2
+                        )
+                        AS avg_humidity
 
                     FROM sensor_data
 
                     WHERE timestamp >=
-                    NOW() -
-                    INTERVAL '30 days'
+                        NOW() - INTERVAL '30 days'
 
                     GROUP BY
-                    DATE(timestamp)
+                        (
+                            timestamp
+                            AT TIME ZONE
+                            'Asia/Ho_Chi_Minh'
+                        )::date
 
                     ORDER BY
-                    date ASC
+                        date ASC
 
-                    `
-                );
+                `);
 
 
             res.json(
@@ -404,14 +659,22 @@ app.get(
 
         catch(error)
         {
-            console.log(error);
+
+            console.log(
+                "History error:",
+                error
+            );
+
 
             res
                 .status(500)
                 .json({
+
                     error:
                         error.message
+
                 });
+
         }
 
     }
@@ -447,8 +710,10 @@ app.use(
         res
             .status(404)
             .json({
+
                 error:
-                    "Not Found"
+                    "Không tìm thấy trang"
+
             });
 
     }
@@ -465,7 +730,7 @@ app.listen(
     () => {
 
         console.log(
-            `🚀 Server running on port ${PORT}`
+            `🚀 Server đang chạy tại cổng ${PORT}`
         );
 
     }

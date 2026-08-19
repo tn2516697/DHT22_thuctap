@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>Smart Environment Monitoring</title>
+<title>Giám sát môi trường thông minh</title>
 
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
@@ -22,37 +22,54 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 <div class="container">
 
-    <!-- SIDEBAR -->
+    <!-- THANH BÊN -->
 
     <aside class="sidebar">
 
         <div class="logo">
+
             <i class="fa-solid fa-leaf"></i>
+
             Smart <span>IoT</span>
+
         </div>
+
 
         <nav class="menu">
 
-            <a class="active" href="index.html">
+            <a class="active"
+               href="index.html">
+
                 <i class="fa-solid fa-house"></i>
-                <span>Overview</span>
+
+                <span>Tổng quan</span>
+
             </a>
+
 
             <a href="dashboard.html">
+
                 <i class="fa-solid fa-chart-line"></i>
-                <span>Dashboard</span>
+
+                <span>Giám sát</span>
+
             </a>
 
+
             <a href="history.html">
+
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                <span>History</span>
+
+                <span>Lịch sử</span>
+
             </a>
 
         </nav>
 
+
         <div class="device-box">
 
-            <h3>ESP32-C3 Device</h3>
+            <h3>Thiết bị ESP32-C3</h3>
 
             <br>
 
@@ -60,17 +77,17 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <i class="fa-solid fa-circle"></i>
 
-                ESP32 Offline
+                ESP32 Ngoại tuyến
 
             </p>
 
-            <p>AHT30 Sensor</p>
+            <p>Cảm biến AHT30</p>
 
             <br>
 
             <small id="lastSeen">
 
-                Waiting for data...
+                Chưa nhận dữ liệu
 
             </small>
 
@@ -79,7 +96,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- NỘI DUNG -->
 
     <main class="main">
 
@@ -87,116 +104,52 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
             <div>
 
-                <h1>Smart Environment Monitoring</h1>
+                <h1>
+                    Hệ thống giám sát môi trường
+                </h1>
 
                 <p>
-                    ESP32-C3 + AHT30 Monitoring System
+                    Hệ thống giám sát nhiệt độ và độ ẩm sử dụng ESP32-C3 và AHT30
                 </p>
 
             </div>
+
 
             <div
                 class="status"
                 id="serverStatus">
 
-                🔴 Disconnected
+                🔴 ESP32 Ngoại tuyến
 
             </div>
 
         </header>
 
 
-        <!-- SENSOR CARDS -->
+        <!-- GIỚI THIỆU -->
 
-        <section class="cards">
+        <section class="intro-panel">
 
-            <div class="card">
+            <div class="intro-icon">
 
-                <div class="card-title">
-                    🌡 Temperature
-                </div>
-
-                <div
-                    class="card-value"
-                    id="temperature">
-
-                    -- °C
-
-                </div>
-
-                <p
-                    class="normal"
-                    id="tempState">
-
-                    Waiting...
-
-                </p>
+                <i class="fa-solid fa-leaf"></i>
 
             </div>
 
 
-            <div class="card">
+            <div>
 
-                <div class="card-title">
-                    💧 Humidity
-                </div>
+                <h2>
+                    Chào mừng đến với hệ thống giám sát
+                </h2>
 
-                <div
-                    class="card-value"
-                    id="humidity">
+                <p>
 
-                    -- %
+                    Hệ thống thu thập dữ liệu môi trường từ
+                    cảm biến AHT30 thông qua vi điều khiển ESP32-C3.
+                    Dữ liệu được truyền về máy chủ và lưu trữ trên
+                    cơ sở dữ liệu PostgreSQL.
 
-                </div>
-
-                <p
-                    class="normal"
-                    id="humState">
-
-                    Waiting...
-
-                </p>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    🌀 Cooling Fan
-                </div>
-
-                <div
-                    class="card-value"
-                    id="fan">
-
-                    OFF
-
-                </div>
-
-                <p id="fanMode">
-                    Relay Output
-                </p>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    🔔 Alarm
-                </div>
-
-                <div
-                    class="card-value"
-                    id="alarm">
-
-                    OFF
-
-                </div>
-
-                <p id="alarmMode">
-                    Automatic
                 </p>
 
             </div>
@@ -204,22 +157,90 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         </section>
 
 
-        <!-- SYSTEM STATUS -->
+        <!-- CÁC CHỨC NĂNG -->
 
         <section class="panel">
 
             <div class="panel-title">
-                System Status
+
+                Chức năng của hệ thống
+
             </div>
+
+
+            <div class="feature-grid">
+
+                <div class="feature-card">
+
+                    <i class="fa-solid fa-chart-line"></i>
+
+                    <h3>
+                        Giám sát thời gian thực
+                    </h3>
+
+                    <p>
+                        Theo dõi nhiệt độ, độ ẩm,
+                        quạt và cảnh báo theo thời gian thực.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <i class="fa-solid fa-database"></i>
+
+                    <h3>
+                        Lưu trữ dữ liệu
+                    </h3>
+
+                    <p>
+                        Dữ liệu cảm biến được lưu trữ
+                        trên cơ sở dữ liệu PostgreSQL.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+
+                    <h3>
+                        Xem lịch sử
+                    </h3>
+
+                    <p>
+                        Xem và phân tích dữ liệu môi trường
+                        trong 30 ngày gần nhất.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- TRẠNG THÁI -->
+
+        <section class="panel">
+
+            <div class="panel-title">
+                Trạng thái hệ thống
+            </div>
+
 
             <div class="status-grid">
 
                 <div class="status-item">
 
-                    <h3>Microcontroller</h3>
+                    <h3>
+                        Vi điều khiển
+                    </h3>
 
                     <p id="espStatus">
-                        🔴 Offline
+                        🔴 Ngoại tuyến
                     </p>
 
                 </div>
@@ -227,10 +248,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <div class="status-item">
 
-                    <h3>Sensor</h3>
+                    <h3>
+                        Cảm biến
+                    </h3>
 
                     <p id="sensorStatus">
-                        Waiting...
+                        Chưa kết nối
                     </p>
 
                 </div>
@@ -238,7 +261,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <div class="status-item">
 
-                    <h3>Database</h3>
+                    <h3>
+                        Cơ sở dữ liệu
+                    </h3>
 
                     <p>
                         🟢 PostgreSQL

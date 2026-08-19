@@ -1,417 +1,792 @@
-/* ==============================
+/* =========================================
    SMART ENVIRONMENT MONITORING
-================================ */
+   GIAO DIỆN CHUNG
+========================================= */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:"Segoe UI",sans-serif;
-}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 
-body{
-    background:radial-gradient(
-        circle at top left,
-        #203a43,
-        #0f2027
-    );
-
-    color:#fff;
-    min-height:100vh;
-}
-
-.container{
-    display:flex;
-    min-height:100vh;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
 
-/* ==============================
+body {
+
+    background:
+        radial-gradient(
+            circle at top left,
+            #203a43,
+            #0f2027
+        );
+
+    color: #ffffff;
+
+    min-height: 100vh;
+}
+
+
+/* =========================================
+   CONTAINER
+========================================= */
+
+.container {
+
+    display: flex;
+
+    min-height: 100vh;
+}
+
+
+/* =========================================
    SIDEBAR
-================================ */
+========================================= */
 
-.sidebar{
-    width:260px;
-    flex-shrink:0;
+.sidebar {
 
-    background:rgba(255,255,255,.08);
+    width: 250px;
 
-    backdrop-filter:blur(14px);
+    flex-shrink: 0;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    backdrop-filter:
+        blur(14px);
 
     border-right:
-        1px solid rgba(255,255,255,.15);
+        1px solid rgba(255,255,255,0.12);
 
-    padding:25px;
-}
-
-.logo{
-    font-size:24px;
-    font-weight:bold;
-    margin-bottom:40px;
-}
-
-.logo span{
-    color:#00e5ff;
-}
-
-.menu{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-.menu a{
-    display:flex;
-    align-items:center;
-
-    gap:12px;
-
-    color:#ddd;
-
-    text-decoration:none;
-
-    padding:14px 16px;
-
-    border-radius:12px;
-
-    transition:.3s;
-}
-
-.menu a:hover,
-.menu a.active{
-    background:rgba(0,229,255,.18);
-    color:#fff;
-}
-
-.device-box{
-    margin-top:45px;
-
-    background:rgba(255,255,255,.08);
-
-    border-radius:15px;
-
-    padding:20px;
-}
-
-.online{
-    color:#00ff88;
+    padding: 24px 20px;
 }
 
 
-/* ==============================
+/* LOGO */
+
+.logo {
+
+    font-size: 23px;
+
+    font-weight: 700;
+
+    margin-bottom: 38px;
+
+    letter-spacing: 0.3px;
+}
+
+
+.logo i {
+
+    margin-right: 7px;
+}
+
+
+.logo span {
+
+    color: #00e5ff;
+}
+
+
+/* =========================================
+   MENU
+========================================= */
+
+.menu {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.menu a {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    color: #d5d5d5;
+
+    text-decoration: none;
+
+    padding: 13px 15px;
+
+    border-radius: 11px;
+
+    transition: 0.25s;
+}
+
+
+.menu a:hover {
+
+    background:
+        rgba(0,229,255,0.10);
+
+    color: #ffffff;
+}
+
+
+.menu a.active {
+
+    background:
+        rgba(0,229,255,0.18);
+
+    color: #ffffff;
+}
+
+
+.menu a i {
+
+    width: 20px;
+
+    text-align: center;
+}
+
+
+/* =========================================
+   DEVICE BOX
+========================================= */
+
+.device-box {
+
+    margin-top: 40px;
+
+    padding: 18px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+}
+
+
+.device-box h3 {
+
+    font-size: 16px;
+
+    margin-bottom: 4px;
+}
+
+
+.device-box p {
+
+    margin-top: 8px;
+
+    color: #cccccc;
+
+    font-size: 14px;
+}
+
+
+.device-box small {
+
+    color: #9e9e9e;
+
+    font-size: 12px;
+}
+
+
+.online {
+
+    color: #00ff88;
+}
+
+
+/* =========================================
    MAIN
-================================ */
+========================================= */
 
-.main{
-    flex:1;
+.main {
 
-    padding:30px;
+    flex: 1;
 
-    overflow:hidden;
-}
+    min-width: 0;
 
-.header{
-    display:flex;
+    padding: 28px;
 
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:25px;
-}
-
-.header h1{
-    font-size:30px;
-}
-
-.status{
-    padding:12px 18px;
-
-    border-radius:20px;
-
-    background:rgba(255,255,255,.08);
+    overflow-x: hidden;
 }
 
 
-/* ==============================
-   CARD
-================================ */
+/* =========================================
+   HEADER
+========================================= */
 
-.cards{
-    display:grid;
+.header {
 
-    grid-template-columns:
-        repeat(4,minmax(180px,1fr));
+    display: flex;
 
-    gap:20px;
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 24px;
 }
 
-.card{
-    background:rgba(255,255,255,.08);
+
+.header h1 {
+
+    font-size: 28px;
+
+    font-weight: 650;
+
+    margin-bottom: 6px;
+}
+
+
+.header p {
+
+    color: #bdbdbd;
+
+    font-size: 14px;
+}
+
+
+/* =========================================
+   STATUS HEADER
+========================================= */
+
+.status {
+
+    padding: 10px 16px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.08);
 
     border:
-        1px solid rgba(255,255,255,.12);
+        1px solid rgba(255,255,255,0.08);
 
-    border-radius:20px;
+    white-space: nowrap;
 
-    padding:22px;
-
-    backdrop-filter:blur(10px);
-}
-
-.card-title{
-    color:#bfbfbf;
-}
-
-.card-value{
-    margin:18px 0;
-
-    font-size:34px;
-
-    font-weight:bold;
-}
-
-.normal{
-    color:#00ff88;
-}
-
-.warning{
-    color:#ffd54f;
+    font-size: 14px;
 }
 
 
-/* ==============================
+/* =========================================
+   CARDS
+========================================= */
+
+.cards {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(160px, 1fr));
+
+    gap: 16px;
+}
+
+
+.card {
+
+    background:
+        rgba(255,255,255,0.075);
+
+    border:
+        1px solid rgba(255,255,255,0.10);
+
+    border-radius: 17px;
+
+    padding: 19px;
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+.card-title {
+
+    color: #c5c5c5;
+
+    font-size: 14px;
+
+    font-weight: 500;
+}
+
+
+.card-value {
+
+    margin: 13px 0;
+
+    font-size: 29px;
+
+    font-weight: 700;
+}
+
+
+.card p {
+
+    color: #9f9f9f;
+
+    font-size: 13px;
+}
+
+
+.normal {
+
+    color: #00ff88 !important;
+}
+
+
+.warning {
+
+    color: #ffd54f !important;
+}
+
+
+/* =========================================
    PANEL
-================================ */
+========================================= */
 
-.panel{
-    margin-top:25px;
+.panel {
 
-    padding:25px;
+    margin-top: 20px;
 
-    background:rgba(255,255,255,.08);
+    padding: 20px;
 
-    border-radius:20px;
+    background:
+        rgba(255,255,255,0.07);
 
     border:
-        1px solid rgba(255,255,255,.12);
-}
+        1px solid rgba(255,255,255,0.10);
 
-.panel-title{
-    font-size:20px;
+    border-radius: 17px;
 
-    margin-bottom:20px;
-}
-
-
-/* ==============================
-   STATUS GRID
-================================ */
-
-.status-grid{
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
-    gap:20px;
-}
-
-.status-item{
-    background:rgba(0,0,0,.18);
-
-    border-radius:15px;
-
-    padding:20px;
-}
-
-.status-item h3{
-    color:#bdbdbd;
-
-    font-size:16px;
-}
-
-.status-item p{
-    margin-top:12px;
-
-    font-size:22px;
+    backdrop-filter:
+        blur(10px);
 }
 
 
-/* ==============================
+.panel-title {
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+    margin-bottom: 16px;
+}
+
+
+/* =========================================
    DASHBOARD CHART
-================================ */
+========================================= */
 
-.chart-grid{
-    display:grid;
+.chart-grid {
+
+    display: grid;
 
     grid-template-columns:
         1fr 1fr;
 
-    gap:20px;
+    gap: 18px;
 
-    margin-top:25px;
-}
-
-.chart-small{
-    height:250px;
-}
-
-.chart-medium{
-    height:320px;
+    margin-top: 20px;
 }
 
 
-/* ==============================
+.dashboard-chart-panel {
+
+    margin-top: 0;
+}
+
+
+.chart-small {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 225px;
+}
+
+
+.chart-small canvas {
+
+    width: 100% !important;
+
+    height: 100% !important;
+}
+
+
+/* =========================================
+   HISTORY CHART
+========================================= */
+
+.chart-medium {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 260px;
+}
+
+
+.chart-medium canvas {
+
+    width: 100% !important;
+
+    height: 100% !important;
+}
+
+
+/* =========================================
+   STATUS GRID
+========================================= */
+
+.status-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+
+.status-item {
+
+    background:
+        rgba(0,0,0,0.17);
+
+    border-radius: 13px;
+
+    padding: 16px;
+}
+
+
+.status-item h3 {
+
+    color: #a9a9a9;
+
+    font-size: 14px;
+
+    font-weight: 500;
+}
+
+
+.status-item p {
+
+    margin-top: 9px;
+
+    font-size: 18px;
+
+    font-weight: 600;
+}
+
+
+/* =========================================
    TABLE
-================================ */
+========================================= */
 
-table{
-    width:100%;
+table {
 
-    border-collapse:collapse;
+    width: 100%;
+
+    border-collapse: collapse;
+
+    font-size: 14px;
 }
+
 
 th,
-td{
-    padding:14px;
+td {
 
-    text-align:center;
+    padding: 12px 10px;
+
+    text-align: center;
 }
 
-th{
+
+th {
+
     background:
-        rgba(0,229,255,.15);
+        rgba(0,229,255,0.12);
+
+    color: #ffffff;
+
+    font-weight: 600;
 }
 
-tbody tr{
+
+tbody tr {
+
     border-bottom:
-        1px solid rgba(255,255,255,.08);
+        1px solid rgba(255,255,255,0.07);
 }
 
-tbody tr:hover{
+
+tbody tr:hover {
+
     background:
-        rgba(255,255,255,.05);
+        rgba(255,255,255,0.04);
 }
 
 
-/* ==============================
-   STATUS
-================================ */
+td {
 
-.badge-online{
-    color:#00ff88;
-
-    font-weight:bold;
-}
-
-.badge-offline{
-    color:#ff5252;
-
-    font-weight:bold;
-}
-
-.badge-warning{
-    color:#ffc107;
-
-    font-weight:bold;
+    color: #d6d6d6;
 }
 
 
-/* ==============================
-   CANVAS
-================================ */
+/* =========================================
+   BADGE
+========================================= */
 
-.chart-small canvas,
-.chart-medium canvas{
-    width:100% !important;
+.badge-online {
 
-    height:100% !important;
+    color: #00ff88;
+
+    font-weight: 600;
 }
 
 
-/* ==============================
+.badge-offline {
+
+    color: #ff5252;
+
+    font-weight: 600;
+}
+
+
+.badge-warning {
+
+    color: #ffc107;
+
+    font-weight: 600;
+}
+
+
+/* =========================================
    SCROLLBAR
-================================ */
+========================================= */
 
-::-webkit-scrollbar{
-    width:8px;
-}
+::-webkit-scrollbar {
 
-::-webkit-scrollbar-track{
-    background:#13252d;
-}
+    width: 7px;
 
-::-webkit-scrollbar-thumb{
-    background:#3e6d7f;
-
-    border-radius:20px;
-}
-
-::-webkit-scrollbar-thumb:hover{
-    background:#4f90a8;
+    height: 7px;
 }
 
 
-/* ==============================
+::-webkit-scrollbar-track {
+
+    background: #13252d;
+}
+
+
+::-webkit-scrollbar-thumb {
+
+    background: #3e6d7f;
+
+    border-radius: 20px;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+
+    background: #4f90a8;
+}
+
+
+/* =========================================
+   HISTORY - BẢNG GỌN
+========================================= */
+
+.panel table {
+
+    margin-top: 4px;
+}
+
+
+/* =========================================
    RESPONSIVE
-================================ */
+========================================= */
 
-@media (max-width:1100px){
+@media (max-width: 1100px) {
 
-    .cards{
+    .cards {
+
         grid-template-columns:
-            repeat(2,1fr);
+            repeat(2, 1fr);
     }
 
-    .status-grid{
-        grid-template-columns:1fr;
+
+    .status-grid {
+
+        grid-template-columns:
+            1fr;
     }
 
-    .chart-grid{
-        grid-template-columns:1fr;
+
+    .chart-grid {
+
+        grid-template-columns:
+            1fr;
     }
 
 }
 
 
-@media (max-width:800px){
+/* =========================================
+   TABLET
+========================================= */
 
-    .container{
-        flex-direction:column;
+@media (max-width: 800px) {
+
+    .container {
+
+        flex-direction: column;
     }
 
-    .sidebar{
-        width:100%;
 
-        border-right:none;
+    .sidebar {
+
+        width: 100%;
+
+        border-right: none;
 
         border-bottom:
-            1px solid rgba(255,255,255,.15);
+            1px solid rgba(255,255,255,0.12);
+
+        padding: 18px;
     }
 
-    .main{
-        padding:18px;
+
+    .logo {
+
+        margin-bottom: 20px;
     }
 
-    .header{
-        flex-direction:column;
 
-        align-items:flex-start;
+    .menu {
 
-        gap:15px;
+        flex-direction: row;
+
+        overflow-x: auto;
     }
 
-    .cards{
-        grid-template-columns:1fr;
+
+    .menu a {
+
+        white-space: nowrap;
     }
 
-    .chart-small{
-        height:220px;
+
+    .device-box {
+
+        margin-top: 20px;
     }
 
-    .chart-medium{
-        height:260px;
+
+    .main {
+
+        padding: 18px;
+    }
+
+
+    .header {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .cards {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .chart-small {
+
+        height: 220px;
+    }
+
+
+    .chart-medium {
+
+        height: 230px;
+    }
+
+}
+
+
+/* =========================================
+   ĐIỆN THOẠI
+========================================= */
+
+@media (max-width: 500px) {
+
+    .main {
+
+        padding: 14px;
+    }
+
+
+    .header h1 {
+
+        font-size: 23px;
+    }
+
+
+    .panel {
+
+        padding: 15px;
+
+        border-radius: 14px;
+    }
+
+
+    .card {
+
+        padding: 17px;
+    }
+
+
+    .card-value {
+
+        font-size: 27px;
+    }
+
+
+    .chart-small {
+
+        height: 200px;
+    }
+
+
+    .chart-medium {
+
+        height: 210px;
+    }
+
+
+    table {
+
+        font-size: 12px;
+    }
+
+
+    th,
+    td {
+
+        padding: 9px 5px;
     }
 
 }

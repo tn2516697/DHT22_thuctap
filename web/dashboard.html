@@ -3,28 +3,32 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<title>Realtime Dashboard</title>
+    <title>Giám sát thời gian thực</title>
 
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mobile.css">
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
+
 
 <body>
 
 <div class="container">
 
-    <!-- SIDEBAR -->
+
+    <!-- =========================
+         THANH ĐIỀU HƯỚNG
+    ========================== -->
 
     <aside class="sidebar">
 
@@ -36,57 +40,72 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
         </div>
 
+
         <nav class="menu">
 
             <a href="index.html">
 
                 <i class="fa-solid fa-house"></i>
 
-                <span>Overview</span>
+                <span>Tổng quan</span>
 
             </a>
+
 
             <a class="active"
                href="dashboard.html">
 
                 <i class="fa-solid fa-chart-line"></i>
 
-                <span>Dashboard</span>
+                <span>Giám sát</span>
 
             </a>
+
 
             <a href="history.html">
 
                 <i class="fa-solid fa-clock-rotate-left"></i>
 
-                <span>History</span>
+                <span>Lịch sử</span>
 
             </a>
 
         </nav>
 
 
+        <!-- =========================
+             THIẾT BỊ
+        ========================== -->
+
         <div class="device-box">
 
-            <h3>ESP32-C3 Device</h3>
+            <h3>Thiết bị ESP32-C3</h3>
 
             <br>
+
 
             <p id="dashboardDeviceStatus">
 
                 <i class="fa-solid fa-circle"></i>
 
-                ESP32 Offline
+                ESP32 Ngoại tuyến
 
             </p>
 
-            <p>AHT30 Sensor</p>
+
+            <p>
+
+                Cảm biến AHT30
+
+            </p>
+
 
             <br>
 
+
             <small id="dashboardLastSeen">
 
-                Waiting for data...
+                Chưa nhận dữ liệu
 
             </small>
 
@@ -95,44 +114,60 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </aside>
 
 
-    <!-- MAIN -->
+
+    <!-- =========================
+         NỘI DUNG CHÍNH
+    ========================== -->
 
     <main class="main">
+
+
+        <!-- HEADER -->
 
         <header class="header">
 
             <div>
 
                 <h1>
-                    Realtime Dashboard
+                    Giám sát thời gian thực
                 </h1>
 
                 <p>
-                    Live Environment Monitoring
+                    Theo dõi nhiệt độ và độ ẩm từ cảm biến AHT30
                 </p>
 
             </div>
+
 
             <div
                 class="status"
                 id="dashboardServerStatus">
 
-                🔴 Waiting Connection
+                🔴 Đang chờ kết nối
 
             </div>
 
         </header>
 
 
-        <!-- STATUS CARDS -->
+
+        <!-- =========================
+             GIÁ TRỊ HIỆN TẠI
+        ========================== -->
 
         <section class="cards">
+
+
+            <!-- NHIỆT ĐỘ -->
 
             <div class="card">
 
                 <div class="card-title">
-                    🌡 Temperature
+
+                    🌡️ Nhiệt độ
+
                 </div>
+
 
                 <div
                     class="card-value"
@@ -142,14 +177,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 </div>
 
+
+                <p class="normal">
+
+                    Giá trị hiện tại
+
+                </p>
+
             </div>
 
+
+
+            <!-- ĐỘ ẨM -->
 
             <div class="card">
 
                 <div class="card-title">
-                    💧 Humidity
+
+                    💧 Độ ẩm
+
                 </div>
+
 
                 <div
                     class="card-value"
@@ -159,54 +207,96 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 </div>
 
+
+                <p class="normal">
+
+                    Giá trị hiện tại
+
+                </p>
+
             </div>
 
+
+
+            <!-- QUẠT -->
 
             <div class="card">
 
                 <div class="card-title">
-                    🌀 Cooling Fan
+
+                    🌀 Quạt làm mát
+
                 </div>
+
 
                 <div
                     class="card-value"
                     id="fanStatus">
 
-                    OFF
+                    TẮT
 
                 </div>
+
+
+                <p>
+
+                    Điều khiển qua rơ-le
+
+                </p>
 
             </div>
 
 
+
+            <!-- CẢNH BÁO -->
+
             <div class="card">
 
                 <div class="card-title">
-                    🔔 Alarm
+
+                    🔔 Cảnh báo
+
                 </div>
+
 
                 <div
                     class="card-value"
                     id="alarmStatus">
 
-                    OFF
+                    TẮT
 
                 </div>
+
+
+                <p>
+
+                    Chế độ tự động
+
+                </p>
 
             </div>
 
         </section>
 
 
-        <!-- REALTIME CHARTS -->
+
+        <!-- =========================
+             BIỂU ĐỒ 2 GIỜ GẦN NHẤT
+        ========================== -->
 
         <section class="chart-grid">
 
-            <div class="panel">
+
+            <!-- BIỂU ĐỒ NHIỆT ĐỘ -->
+
+            <div class="panel dashboard-chart-panel">
 
                 <div class="panel-title">
-                    🌡 Temperature Realtime
+
+                    🌡️ Nhiệt độ trong 2 giờ gần nhất
+
                 </div>
+
 
                 <div class="chart-small">
 
@@ -217,11 +307,17 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
             </div>
 
 
-            <div class="panel">
+
+            <!-- BIỂU ĐỒ ĐỘ ẨM -->
+
+            <div class="panel dashboard-chart-panel">
 
                 <div class="panel-title">
-                    💧 Humidity Realtime
+
+                    💧 Độ ẩm trong 2 giờ gần nhất
+
                 </div>
+
 
                 <div class="chart-small">
 
@@ -234,44 +330,74 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         </section>
 
 
-        <!-- MONITORING STATUS -->
 
-        <section class="panel">
+        <!-- =========================
+             TRẠNG THÁI HỆ THỐNG
+        ========================== -->
+
+        <section class="panel monitoring-panel">
 
             <div class="panel-title">
-                Monitoring Status
+
+                Trạng thái hệ thống
+
             </div>
+
 
             <div class="status-grid">
 
+
+                <!-- ESP32 -->
+
                 <div class="status-item">
 
-                    <h3>ESP32-C3</h3>
+                    <h3>
+                        Vi điều khiển
+                    </h3>
+
 
                     <p id="espRealtime">
-                        🔴 Offline
+
+                        🔴 Ngoại tuyến
+
                     </p>
 
                 </div>
 
 
+
+                <!-- LAST UPDATE -->
+
                 <div class="status-item">
 
-                    <h3>Last Update</h3>
+                    <h3>
+                        Lần cập nhật gần nhất
+                    </h3>
+
 
                     <p id="lastUpdate">
+
                         --
+
                     </p>
 
                 </div>
 
 
+
+                <!-- STREAM -->
+
                 <div class="status-item">
 
-                    <h3>Data Stream</h3>
+                    <h3>
+                        Truyền dữ liệu
+                    </h3>
+
 
                     <p id="streamStatus">
-                        Waiting...
+
+                        Đang chờ...
+
                     </p>
 
                 </div>
@@ -280,11 +406,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
         </section>
 
+
     </main>
 
 </div>
 
+
+
 <script src="script.js"></script>
 
 </body>
+
 </html>

@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>History Data</title>
+<title>Lịch sử dữ liệu</title>
 
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="mobile.css">
@@ -23,8 +23,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 <body>
 
 <div class="container">
-
-    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -43,7 +41,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <i class="fa-solid fa-house"></i>
 
-                <span>Overview</span>
+                <span>Tổng quan</span>
 
             </a>
 
@@ -52,7 +50,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <i class="fa-solid fa-chart-line"></i>
 
-                <span>Dashboard</span>
+                <span>Giám sát</span>
 
             </a>
 
@@ -62,7 +60,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <i class="fa-solid fa-clock-rotate-left"></i>
 
-                <span>History</span>
+                <span>Lịch sử</span>
 
             </a>
 
@@ -71,7 +69,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
         <div class="device-box">
 
-            <h3>ESP32-C3 Device</h3>
+            <h3>Thiết bị ESP32-C3</h3>
 
             <br>
 
@@ -79,17 +77,17 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 <i class="fa-solid fa-circle"></i>
 
-                ESP32 Offline
+                ESP32 Ngoại tuyến
 
             </p>
 
-            <p>AHT30 Sensor</p>
+            <p>Cảm biến AHT30</p>
 
             <br>
 
             <small id="historyLastSeen">
 
-                Waiting for data...
+                Chưa nhận dữ liệu
 
             </small>
 
@@ -98,8 +96,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </aside>
 
 
-    <!-- MAIN -->
-
     <main class="main">
 
         <header class="header">
@@ -107,52 +103,62 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
             <div>
 
                 <h1>
-                    Historical Data
+                    Lịch sử dữ liệu
                 </h1>
 
                 <p>
-                    PostgreSQL Database
+                    Dữ liệu môi trường trong 30 ngày gần nhất
                 </p>
 
             </div>
 
+
             <div class="status">
 
-                Last 30 Days
+                30 ngày gần nhất
 
             </div>
 
         </header>
 
 
-        <!-- CHART -->
+        <!-- BIỂU ĐỒ -->
 
-        <section class="panel">
+        <section
+            class="panel history-chart-panel">
 
             <div class="panel-title">
 
-                Temperature & Humidity Trend
+                <i class="fa-solid fa-chart-line"></i>
+
+                Xu hướng nhiệt độ và độ ẩm
 
             </div>
 
-            <div class="chart-medium">
 
-                <canvas id="historyChart"></canvas>
+            <div class="history-chart-container">
+
+                <canvas
+                    id="historyChart">
+                </canvas>
 
             </div>
 
         </section>
 
 
-        <!-- PREDICTION -->
+        <!-- DỰ ĐOÁN -->
 
         <section class="cards">
 
             <div class="card">
 
                 <div class="card-title">
-                    🌡 Predicted Temperature
+
+                    🌡 Nhiệt độ dự đoán
+
                 </div>
+
 
                 <div
                     class="card-value"
@@ -162,8 +168,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 </div>
 
+
                 <p>
-                    Tomorrow Estimate
+                    Dự đoán cho ngày mai
                 </p>
 
             </div>
@@ -172,8 +179,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
             <div class="card">
 
                 <div class="card-title">
-                    💧 Predicted Humidity
+
+                    💧 Độ ẩm dự đoán
+
                 </div>
+
 
                 <div
                     class="card-value"
@@ -183,8 +193,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
                 </div>
 
+
                 <p>
-                    Tomorrow Estimate
+                    Dự đoán cho ngày mai
                 </p>
 
             </div>
@@ -192,35 +203,52 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
         </section>
 
 
-        <!-- TABLE -->
+        <!-- BẢNG -->
 
-        <section class="panel">
+        <section
+            class="panel history-table-panel">
 
             <div class="panel-title">
-                History Table
+
+                <i class="fa-solid fa-table"></i>
+
+                Bảng dữ liệu lịch sử
+
             </div>
 
-            <table>
 
-                <thead>
+            <div class="history-table-wrapper">
 
-                    <tr>
+                <table>
 
-                        <th>Date</th>
+                    <thead>
 
-                        <th>Average Temperature</th>
+                        <tr>
 
-                        <th>Average Humidity</th>
+                            <th>
+                                Ngày
+                            </th>
 
-                    </tr>
+                            <th>
+                                Nhiệt độ trung bình
+                            </th>
 
-                </thead>
+                            <th>
+                                Độ ẩm trung bình
+                            </th>
 
-                <tbody id="historyTable">
+                        </tr>
 
-                </tbody>
+                    </thead>
 
-            </table>
+
+                    <tbody
+                        id="historyTable">
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </section>
 
@@ -228,7 +256,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
 </div>
 
+
 <script src="script.js"></script>
 
 </body>
+
 </html>
