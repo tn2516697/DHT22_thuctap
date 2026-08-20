@@ -33,13 +33,12 @@ app.use(express.json());
 
 
 // Không cache các file giao diện.
-// Giúp sau khi deploy phiên bản mới,
-// trình duyệt không giữ HTML/CSS/JS cũ.
 app.use(
     express.static(WEB_DIR, {
         etag: false,
         maxAge: 0,
         setHeaders: (res) => {
+
             res.setHeader(
                 "Cache-Control",
                 "no-store, no-cache, must-revalidate, proxy-revalidate"
@@ -54,6 +53,7 @@ app.use(
                 "Expires",
                 "0"
             );
+
         }
     })
 );
@@ -74,6 +74,7 @@ const pool = new Pool({
                 rejectUnauthorized: false
             }
             : false
+
 });
 
 
@@ -129,11 +130,6 @@ async function createTable()
     `);
 
 
-    /*
-     * Nếu bảng sensor_data cũ đã tồn tại
-     * nhưng chưa có received_at thì thêm cột.
-     */
-
     await pool.query(`
 
         ALTER TABLE sensor_data
@@ -143,11 +139,6 @@ async function createTable()
 
     `);
 
-
-    /*
-     * Những bản ghi cũ chưa có received_at
-     * sẽ được lấy timestamp làm giá trị tạm thời.
-     */
 
     await pool.query(`
 
@@ -243,10 +234,7 @@ async function saveSensorData(data)
     let timestamp;
 
 
-    /*
-     * timestamp:
-     * thời gian đo của ESP32.
-     */
+    // Thời gian đo của ESP32
 
     if (data.timestamp)
     {
@@ -268,13 +256,7 @@ async function saveSensorData(data)
     }
 
 
-    /*
-     * received_at:
-     * thời điểm Render thực sự nhận dữ liệu.
-     *
-     * Đây mới là thời gian dùng để
-     * xác định ESP32 Online / Offline.
-     */
+    // Thời điểm Render nhận dữ liệu
 
     const receivedAt =
         new Date();
@@ -402,11 +384,9 @@ app.post(
                 req.body;
 
 
-            /*
-             * ==========================================
-             * MỘT BẢN GHI
-             * ==========================================
-             */
+            // ==========================================
+            // MỘT BẢN GHI
+            // ==========================================
 
             if (
                 !Array.isArray(data)
@@ -429,6 +409,8 @@ app.post(
                     saved;
 
 
+                // Gửi ngay dữ liệu mới tới các trình duyệt
+
                 broadcast(
                     latestData
                 );
@@ -447,11 +429,9 @@ app.post(
             }
 
 
-            /*
-             * ==========================================
-             * NHIỀU BẢN GHI
-             * ==========================================
-             */
+            // ==========================================
+            // NHIỀU BẢN GHI
+            // ==========================================
 
             console.log(
                 `ESP32: nhận ${data.length} bản ghi`
@@ -499,6 +479,7 @@ app.post(
                 latestData =
                     lastSaved;
 
+
                 broadcast(
                     latestData
                 );
@@ -544,7 +525,7 @@ app.post(
 
 // =====================================================
 // GET /data
-// LẤY BẢN GHI MỚI NHẤT TỪ DATABASE
+// LẤY BẢN GHI MỚI NHẤT
 // =====================================================
 
 app.get(
@@ -767,9 +748,7 @@ app.get(
         );
 
 
-        /*
-         * Giữ kết nối sống.
-         */
+        // Giữ kết nối SSE sống
 
         res.write(": connected\n\n");
 
@@ -777,10 +756,34 @@ app.get(
         clients.push(res);
 
 
-        /*
-         * Lấy dữ liệu mới nhất từ database
-         * khi trình duyệt vừa kết nối.
-         */
+        // Heartbeat mỗi 15 giây
+
+        const heartbeat =
+            setInterval(
+                () => {
+
+                    try {
+
+                        res.write(
+                            ": heartbeat\n\n"
+                        );
+
+                    }
+
+                    catch(error) {
+
+                        clearInterval(
+                            heartbeat
+                        );
+
+                    }
+
+                },
+                15000
+            );
+
+
+        // Gửi dữ liệu mới nhất ngay khi trình duyệt kết nối
 
         try {
 
@@ -871,13 +874,16 @@ app.get(
         }
 
 
-        /*
-         * Client đóng kết nối.
-         */
+        // Client đóng kết nối
 
         req.on(
             "close",
             () => {
+
+                clearInterval(
+                    heartbeat
+                );
+
 
                 clients =
                     clients.filter(
@@ -908,11 +914,11 @@ app.get(
 
                     SELECT
 
-                        (
-                            timestamp
-                            AT TIME ZONE
-                            'Asia/Ho_Chi_Minh'
-                        )::date AS date,
+                        TO_CHAR(
+                            timestamp AT TIME ZONE
+                            'Asia/Ho_Chi_Minh',
+                            'DD/MM/YYYY'
+                        ) AS date,
 
                         ROUND(
                             AVG(temperature)::numeric,
@@ -932,13 +938,16 @@ app.get(
                     GROUP BY
 
                         (
-                            timestamp
-                            AT TIME ZONE
+                            timestamp AT TIME ZONE
                             'Asia/Ho_Chi_Minh'
                         )::date
 
                     ORDER BY
-                        date ASC
+
+                        (
+                            timestamp AT TIME ZONE
+                            'Asia/Ho_Chi_Minh'
+                        )::date ASC
 
                 `);
 

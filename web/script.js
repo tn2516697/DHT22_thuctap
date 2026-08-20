@@ -4,9 +4,6 @@
 
    WEB:
    https://dht22-thuctap.onrender.com
-
-   API:
-   https://dht22-thuctap.onrender.com
 ============================================ */
 
 
@@ -521,15 +518,6 @@ function addRealtimePoint(
 
 function removeOldRealtimeData()
 {
-    /*
-     * ESP32 gửi mỗi 3 giây.
-     *
-     * 2 giờ ≈ 2400 điểm.
-     *
-     * Giữ tối đa 2500 điểm để tránh
-     * biểu đồ phát triển vô hạn.
-     */
-
     const maxPoints =
         2500;
 
@@ -990,11 +978,6 @@ async function loadHistory()
         );
 
 
-        calculatePrediction(
-            data
-        );
-
-
         /*
          * Lấy trạng thái mới nhất từ Render.
          */
@@ -1240,160 +1223,6 @@ function createHistoryTable(
 
 
 /* =====================================================
-   PREDICTION
-===================================================== */
-
-function calculatePrediction(
-    data
-)
-{
-    if (
-        data.length < 3
-    )
-    {
-        return;
-    }
-
-
-    const temperatures =
-        data.map(
-            item =>
-                Number(
-                    item.avg_temperature
-                )
-        );
-
-
-    const humidities =
-        data.map(
-            item =>
-                Number(
-                    item.avg_humidity
-                )
-        );
-
-
-    const predictedTemp =
-        linearPrediction(
-            temperatures
-        );
-
-
-    const predictedHum =
-        linearPrediction(
-            humidities
-        );
-
-
-    const tempElement =
-        document.getElementById(
-            "predictTemp"
-        );
-
-
-    const humElement =
-        document.getElementById(
-            "predictHum"
-        );
-
-
-    if (tempElement)
-    {
-        tempElement.textContent =
-            predictedTemp.toFixed(2)
-            +
-            " °C";
-    }
-
-
-    if (humElement)
-    {
-        humElement.textContent =
-            predictedHum.toFixed(2)
-            +
-            " %";
-    }
-}
-
-
-/* =====================================================
-   LINEAR PREDICTION
-===================================================== */
-
-function linearPrediction(
-    values
-)
-{
-    const n =
-        values.length;
-
-
-    let xSum = 0;
-
-    let ySum = 0;
-
-    let xySum = 0;
-
-    let xSquareSum = 0;
-
-
-    for (
-        let i = 0;
-        i < n;
-        i++
-    )
-    {
-        xSum += i;
-
-        ySum += values[i];
-
-        xySum +=
-            i * values[i];
-
-        xSquareSum +=
-            i * i;
-    }
-
-
-    const denominator =
-        n * xSquareSum -
-        xSum * xSum;
-
-
-    if (
-        denominator === 0
-    )
-    {
-        return values[n - 1];
-    }
-
-
-    const slope =
-        (
-            n * xySum -
-            xSum * ySum
-        )
-        /
-        denominator;
-
-
-    const intercept =
-        (
-            ySum -
-            slope * xSum
-        )
-        /
-        n;
-
-
-    return (
-        slope * n +
-        intercept
-    );
-}
-
-
-/* =====================================================
    TIME
 ===================================================== */
 
@@ -1446,6 +1275,10 @@ function getRelativeTime(
 }
 
 
+/* =====================================================
+   DATE
+===================================================== */
+
 function formatDate(
     date
 )
@@ -1456,29 +1289,16 @@ function formatDate(
     }
 
 
-    const parts =
-        String(date).split("-");
+    /*
+     * Server đã trả về dạng:
+     *
+     * DD/MM/YYYY
+     *
+     * nên không cần chuyển đổi
+     * qua JavaScript Date.
+     */
 
-
-    if (
-        parts.length !== 3
-    )
-    {
-        return date;
-    }
-
-
-    return (
-        parts[2]
-        +
-        "/"
-        +
-        parts[1]
-        +
-        "/"
-        +
-        parts[0]
-    );
+    return String(date);
 }
 
 

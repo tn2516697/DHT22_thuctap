@@ -225,7 +225,7 @@
 
 
     /* =====================================
-       INTRO
+       INTRO - TRANG CHỦ
     ===================================== */
 
     .intro-panel {
@@ -273,7 +273,7 @@
 
 
     /* =====================================
-       FEATURE
+       FEATURE - 3 CHỨC NĂNG TRANG CHỦ
     ===================================== */
 
     .feature-grid {
@@ -281,21 +281,53 @@
         grid-template-columns:
             1fr;
 
-        gap: 12px;
+        gap: 10px;
 
     }
 
 
     .feature-card {
 
-        padding: 20px 16px;
+        padding:
+            15px
+            16px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 14px;
+
+        min-height: 65px;
 
     }
 
 
     .feature-card i {
 
-        font-size: 24px;
+        font-size: 22px;
+
+        flex-shrink: 0;
+
+    }
+
+
+    .feature-card h3 {
+
+        margin: 0;
+
+        font-size: 15px;
+
+    }
+
+
+    .feature-card p {
+
+        margin-top: 3px;
+
+        font-size: 12px;
+
+        line-height: 1.4;
 
     }
 
@@ -305,6 +337,8 @@
     ===================================== */
 
     .cards {
+
+        display: grid;
 
         grid-template-columns:
             1fr 1fr;
@@ -348,6 +382,103 @@
     .card p {
 
         font-size: 12px;
+
+    }
+
+
+    /* =====================================
+       DASHBOARD
+       NHIỆT ĐỘ + ĐỘ ẨM CÙNG 1 Ô
+    ===================================== */
+
+    .dashboard-cards {
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 10px;
+
+    }
+
+
+    /*
+     * Nếu dashboard đang dùng .cards
+     * cho nhóm nhiệt độ/độ ẩm:
+     * giữ hai card trên cùng một hàng.
+     */
+
+    .dashboard-cards .card {
+
+        padding:
+            14px
+            12px;
+
+    }
+
+
+    .dashboard-cards .card-title {
+
+        font-size: 12px;
+
+        white-space: nowrap;
+
+    }
+
+
+    .dashboard-cards .card-value {
+
+        font-size: 25px;
+
+        margin:
+            10px 0;
+
+    }
+
+
+    /* =====================================
+       QUẠT + CHUÔNG
+       CÙNG 1 HÀNG
+    ===================================== */
+
+    .status-grid {
+
+        display: grid;
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 10px;
+
+    }
+
+
+    .status-item {
+
+        padding:
+            14px
+            12px;
+
+        border-radius: 14px;
+
+        min-width: 0;
+
+    }
+
+
+    .status-item h3 {
+
+        font-size: 13px;
+
+        margin-bottom: 7px;
+
+    }
+
+
+    .status-item p {
+
+        font-size: 17px;
+
+        white-space: nowrap;
 
     }
 
@@ -407,43 +538,6 @@
 
 
     /* =====================================
-       STATUS
-    ===================================== */
-
-    .status-grid {
-
-        grid-template-columns:
-            1fr;
-
-        gap: 10px;
-
-    }
-
-
-    .status-item {
-
-        padding: 16px;
-
-        border-radius: 14px;
-
-    }
-
-
-    .status-item h3 {
-
-        font-size: 14px;
-
-    }
-
-
-    .status-item p {
-
-        font-size: 19px;
-
-    }
-
-
-    /* =====================================
        HISTORY TABLE
     ===================================== */
 
@@ -475,11 +569,23 @@
 
     }
 
+
+    /* =====================================
+       HISTORY
+    ===================================== */
+
+    .history-table-panel {
+
+        overflow: hidden;
+
+    }
+
 }
 
 
 /* =========================================
    VERY SMALL PHONE
+   <= 420px
 ========================================= */
 
 @media (max-width: 420px) {
@@ -532,25 +638,139 @@
     }
 
 
+    /* =====================================
+       KHÔNG CHUYỂN CARDS THÀNH 1 CỘT
+       TRÊN ĐIỆN THOẠI NHỎ
+    ===================================== */
+
     .cards {
 
         grid-template-columns:
-            1fr;
+            1fr 1fr;
+
+        gap: 8px;
+
+    }
+
+
+    .card {
+
+        padding:
+            13px
+            10px;
+
+    }
+
+
+    .card-title {
+
+        font-size: 11px;
 
     }
 
 
     .card-value {
 
-        font-size: 29px;
+        font-size: 22px;
+
+        margin:
+            9px 0;
 
     }
 
+
+    .card p {
+
+        font-size: 10px;
+
+    }
+
+
+    /* =====================================
+       DASHBOARD
+    ===================================== */
+
+    .dashboard-cards {
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 8px;
+
+    }
+
+
+    .dashboard-cards .card {
+
+        padding:
+            12px
+            9px;
+
+    }
+
+
+    .dashboard-cards .card-title {
+
+        font-size: 10px;
+
+    }
+
+
+    .dashboard-cards .card-value {
+
+        font-size: 21px;
+
+    }
+
+
+    /* =====================================
+       QUẠT + CHUÔNG
+    ===================================== */
+
+    .status-grid {
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 8px;
+
+    }
+
+
+    .status-item {
+
+        padding:
+            12px
+            9px;
+
+    }
+
+
+    .status-item h3 {
+
+        font-size: 11px;
+
+    }
+
+
+    .status-item p {
+
+        font-size: 14px;
+
+    }
+
+
+    /* =====================================
+       INTRO
+    ===================================== */
 
     .intro-panel {
 
         flex-direction:
             column;
+
+        align-items:
+            flex-start;
 
     }
 
@@ -563,6 +783,56 @@
 
     }
 
+
+    /* =====================================
+       FEATURE
+    ===================================== */
+
+    .feature-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 8px;
+
+    }
+
+
+    .feature-card {
+
+        padding:
+            13px
+            12px;
+
+        min-height: 58px;
+
+    }
+
+
+    .feature-card i {
+
+        font-size: 20px;
+
+    }
+
+
+    .feature-card h3 {
+
+        font-size: 14px;
+
+    }
+
+
+    .feature-card p {
+
+        font-size: 11px;
+
+    }
+
+
+    /* =====================================
+       PANEL
+    ===================================== */
 
     .panel {
 
