@@ -1,6 +1,9 @@
 /* ============================================
    SMART ENVIRONMENT MONITORING
    ESP32 + AHT30 + PostgreSQL + Render
+
+   WEB:
+   https://dht22-thuctap.onrender.com
 ============================================ */
 
 
@@ -17,10 +20,27 @@ const SERVER_URL =
 ===================================================== */
 
 let tempChart = null;
+
 let humidityChart = null;
+
 let historyChart = null;
+
 let eventSource = null;
+
 let lastReceiveTime = 0;
+
+
+/* =====================================================
+   REALTIME WINDOW
+===================================================== */
+
+// Hiển thị 2 giờ gần nhất
+const REALTIME_WINDOW =
+    2 * 60 * 60 * 1000;
+
+// Mỗi mốc cách nhau 20 phút
+const TICK_INTERVAL =
+    20 * 60 * 1000;
 
 
 /* =====================================================
@@ -29,10 +49,11 @@ let lastReceiveTime = 0;
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
-
+    () =>
+    {
         const path =
             window.location.pathname;
+
 
         if (
             path === "/" ||
@@ -55,7 +76,6 @@ document.addEventListener(
         {
             loadHistory();
         }
-
     }
 );
 
@@ -64,7 +84,9 @@ document.addEventListener(
    API HELPER
 ===================================================== */
 
-async function apiFetch(endpoint)
+async function apiFetch(
+    endpoint
+)
 {
     const response =
         await fetch(
@@ -74,12 +96,14 @@ async function apiFetch(endpoint)
             }
         );
 
+
     if (!response.ok)
     {
         throw new Error(
             `HTTP ${response.status}`
         );
     }
+
 
     return response.json();
 }
@@ -110,6 +134,39 @@ async function loadDashboard()
 
 
 /* =====================================================
+   FORMAT REALTIME TIME
+===================================================== */
+
+function formatRealtimeTime(
+    timestamp
+)
+{
+    const date =
+        new Date(timestamp);
+
+
+    if (
+        isNaN(
+            date.getTime()
+        )
+    )
+    {
+        return "";
+    }
+
+
+    return date.toLocaleTimeString(
+        "vi-VN",
+        {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        }
+    );
+}
+
+
+/* =====================================================
    LOAD REALTIME HISTORY
 ===================================================== */
 
@@ -122,20 +179,18 @@ async function loadRealtimeHistory()
                 "/realtime"
             );
 
-        if (!Array.isArray(data))
+
+        if (
+            !Array.isArray(data)
+        )
         {
+            console.error(
+                "Dữ liệu /realtime không phải mảng"
+            );
+
             return;
         }
 
-        if (tempChart)
-        {
-            tempChart.data.datasets[0].data = [];
-        }
-
-        if (humidityChart)
-        {
-            humidityChart.data.datasets[0].data = [];
-        }
 
         data.forEach(
             record =>
@@ -147,10 +202,24 @@ async function loadRealtimeHistory()
             }
         );
 
-        updateRealtimeChartWindow();
 
-        tempChart?.update();
-        humidityChart?.update();
+        removeOldRealtimeData();
+
+
+        if (tempChart)
+        {
+            tempChart.update(
+                "none"
+            );
+        }
+
+
+        if (humidityChart)
+        {
+            humidityChart.update(
+                "none"
+            );
+        }
 
     }
     catch(error)
@@ -165,15 +234,6 @@ async function loadRealtimeHistory()
 
 /* =====================================================
    CREATE REALTIME CHARTS
-
-   Dữ liệu:
-   - Dùng timestamp thực tế
-   - Giữ nguyên toàn bộ điểm dữ liệu
-
-   Trục X:
-   - Chỉ hiển thị thời gian
-   - Vùng hiển thị 2 giờ
-   - Chart.js tự chia tối đa 6 mốc
 ===================================================== */
 
 function createRealtimeCharts()
@@ -183,22 +243,28 @@ function createRealtimeCharts()
             "tempChart"
         );
 
+
     const humCanvas =
         document.getElementById(
             "humidityChart"
         );
+
 
     if (
         !tempCanvas ||
         !humCanvas
     )
     {
+        console.warn(
+            "Không tìm thấy canvas biểu đồ realtime"
+        );
+
         return;
     }
 
 
     /* =================================================
-       TEMPERATURE
+       TEMPERATURE CHART
     ================================================= */
 
     if (!tempChart)
@@ -207,7 +273,6 @@ function createRealtimeCharts()
             new Chart(
                 tempCanvas,
                 {
-
                     type: "line",
 
                     data:
@@ -226,7 +291,9 @@ function createRealtimeCharts()
 
                                 pointRadius: 2,
 
-                                parsing: false
+                                pointHoverRadius: 4,
+
+                                fill: false
                             }
                         ]
                     },
@@ -238,6 +305,10 @@ function createRealtimeCharts()
                         maintainAspectRatio: false,
 
                         animation: false,
+
+                        parsing: false,
+
+                        normalized: true,
 
                         interaction:
                         {
@@ -255,24 +326,36 @@ function createRealtimeCharts()
                                 min:
                                     Date.now()
                                     -
-                                    120 * 60 * 1000,
+                                    REALTIME_WINDOW,
 
                                 max:
                                     Date.now(),
 
                                 ticks:
                                 {
-                                    maxTicksLimit: 6,
+                                    stepSize:
+                                        TICK_INTERVAL,
 
-                                    autoSkip: true,
+                                    autoSkip: false,
+
+                                    maxRotation: 0,
+
+                                    minRotation: 0,
 
                                     callback:
-                                        function(value)
+                                        function(
+                                            value
+                                        )
                                         {
-                                            return formatTime(
-                                                Number(value)
+                                            return formatRealtimeTime(
+                                                value
                                             );
                                         }
+                                },
+
+                                grid:
+                                {
+                                    display: true
                                 }
                             },
 
@@ -280,24 +363,15 @@ function createRealtimeCharts()
                             {
                                 beginAtZero: false
                             }
-                        },
-
-                        plugins:
-                        {
-                            legend:
-                            {
-                                display: true
-                            }
                         }
                     }
-
                 }
             );
     }
 
 
     /* =================================================
-       HUMIDITY
+       HUMIDITY CHART
     ================================================= */
 
     if (!humidityChart)
@@ -306,7 +380,6 @@ function createRealtimeCharts()
             new Chart(
                 humCanvas,
                 {
-
                     type: "line",
 
                     data:
@@ -325,7 +398,9 @@ function createRealtimeCharts()
 
                                 pointRadius: 2,
 
-                                parsing: false
+                                pointHoverRadius: 4,
+
+                                fill: false
                             }
                         ]
                     },
@@ -337,6 +412,10 @@ function createRealtimeCharts()
                         maintainAspectRatio: false,
 
                         animation: false,
+
+                        parsing: false,
+
+                        normalized: true,
 
                         interaction:
                         {
@@ -354,24 +433,36 @@ function createRealtimeCharts()
                                 min:
                                     Date.now()
                                     -
-                                    120 * 60 * 1000,
+                                    REALTIME_WINDOW,
 
                                 max:
                                     Date.now(),
 
                                 ticks:
                                 {
-                                    maxTicksLimit: 6,
+                                    stepSize:
+                                        TICK_INTERVAL,
 
-                                    autoSkip: true,
+                                    autoSkip: false,
+
+                                    maxRotation: 0,
+
+                                    minRotation: 0,
 
                                     callback:
-                                        function(value)
+                                        function(
+                                            value
+                                        )
                                         {
-                                            return formatTime(
-                                                Number(value)
+                                            return formatRealtimeTime(
+                                                value
                                             );
                                         }
+                                },
+
+                                grid:
+                                {
+                                    display: true
                                 }
                             },
 
@@ -379,17 +470,8 @@ function createRealtimeCharts()
                             {
                                 beginAtZero: false
                             }
-                        },
-
-                        plugins:
-                        {
-                            legend:
-                            {
-                                display: true
-                            }
                         }
                     }
-
                 }
             );
     }
@@ -397,33 +479,38 @@ function createRealtimeCharts()
 
 
 /* =====================================================
-   FORMAT TIME
+   UPDATE REALTIME X AXIS
 ===================================================== */
 
-function formatTime(timestamp)
+function updateRealtimeAxis()
 {
-    const date =
-        new Date(timestamp);
+    const now =
+        Date.now();
 
-    if (
-        isNaN(
-            date.getTime()
-        )
-    )
+
+    const start =
+        now -
+        REALTIME_WINDOW;
+
+
+    if (tempChart)
     {
-        return "";
+        tempChart.options.scales.x.min =
+            start;
+
+        tempChart.options.scales.x.max =
+            now;
     }
 
-    return date.toLocaleTimeString(
-        "vi-VN",
-        {
-            hour: "2-digit",
 
-            minute: "2-digit",
+    if (humidityChart)
+    {
+        humidityChart.options.scales.x.min =
+            start;
 
-            hour12: false
-        }
-    );
+        humidityChart.options.scales.x.max =
+            now;
+    }
 }
 
 
@@ -442,6 +529,7 @@ function connectSSE()
     {
         return;
     }
+
 
     eventSource =
         new EventSource(
@@ -551,72 +639,117 @@ function addRealtimePoint(
     const timestamp =
         new Date(
             data.timestamp
-        ).getTime();
+        );
 
 
     if (
-        isNaN(timestamp)
+        isNaN(
+            timestamp.getTime()
+        )
     )
     {
+        console.warn(
+            "Timestamp không hợp lệ:",
+            data.timestamp
+        );
+
         return;
     }
 
 
-    /* TEMPERATURE */
+    const timeValue =
+        timestamp.getTime();
+
+
+    const temperatureValue =
+        Number(
+            data.temperature
+        );
+
+
+    const humidityValue =
+        Number(
+            data.humidity
+        );
+
+
+    /* =================================================
+       TEMPERATURE
+    ================================================= */
 
     if (
         tempChart &&
-        data.temperature !== undefined
+        !isNaN(temperatureValue)
     )
     {
-        tempChart.data.datasets[0].data.push(
-            {
-                x: timestamp,
+        tempChart.data.datasets[0]
+            .data.push(
+                {
+                    x:
+                        timeValue,
 
-                y: Number(
-                    data.temperature
-                )
-            }
-        );
+                    y:
+                        temperatureValue
+                }
+            );
     }
 
 
-    /* HUMIDITY */
+    /* =================================================
+       HUMIDITY
+    ================================================= */
 
     if (
         humidityChart &&
-        data.humidity !== undefined
+        !isNaN(humidityValue)
     )
     {
-        humidityChart.data.datasets[0].data.push(
-            {
-                x: timestamp,
+        humidityChart.data.datasets[0]
+            .data.push(
+                {
+                    x:
+                        timeValue,
 
-                y: Number(
-                    data.humidity
-                )
-            }
-        );
+                    y:
+                        humidityValue
+                }
+            );
     }
 
+
+    /* =================================================
+       REMOVE DATA OLDER THAN 2 HOURS
+    ================================================= */
 
     removeOldRealtimeData();
 
 
-    updateRealtimeChartWindow();
+    /* =================================================
+       UPDATE X AXIS
+    ================================================= */
 
+    updateRealtimeAxis();
+
+
+    /* =================================================
+       UPDATE CHART
+    ================================================= */
 
     if (updateChart)
     {
-        tempChart?.update();
+        tempChart?.update(
+            "none"
+        );
 
-        humidityChart?.update();
+        humidityChart?.update(
+            "none"
+        );
     }
 }
 
 
 /* =====================================================
-   KEEP 2 HOURS
+   KEEP ONLY 2 HOURS
 ===================================================== */
 
 function removeOldRealtimeData()
@@ -625,66 +758,54 @@ function removeOldRealtimeData()
         Date.now();
 
 
-    const twoHoursAgo =
+    const minTime =
         now -
-        120 * 60 * 1000;
+        REALTIME_WINDOW;
 
+
+    /* =================================================
+       TEMPERATURE
+    ================================================= */
 
     if (tempChart)
     {
-        tempChart.data.datasets[0].data =
-            tempChart.data.datasets[0].data.filter(
+        const dataset =
+            tempChart.data.datasets[0];
+
+
+        dataset.data =
+            dataset.data.filter(
                 point =>
-                    point.x >= twoHoursAgo &&
-                    point.x <= now
+                {
+                    return (
+                        point.x >=
+                        minTime
+                    );
+                }
             );
     }
 
 
+    /* =================================================
+       HUMIDITY
+    ================================================= */
+
     if (humidityChart)
     {
-        humidityChart.data.datasets[0].data =
-            humidityChart.data.datasets[0].data.filter(
+        const dataset =
+            humidityChart.data.datasets[0];
+
+
+        dataset.data =
+            dataset.data.filter(
                 point =>
-                    point.x >= twoHoursAgo &&
-                    point.x <= now
+                {
+                    return (
+                        point.x >=
+                        minTime
+                    );
+                }
             );
-    }
-}
-
-
-/* =====================================================
-   UPDATE 2-HOUR WINDOW
-===================================================== */
-
-function updateRealtimeChartWindow()
-{
-    const now =
-        Date.now();
-
-
-    const twoHoursAgo =
-        now -
-        120 * 60 * 1000;
-
-
-    if (tempChart)
-    {
-        tempChart.options.scales.x.min =
-            twoHoursAgo;
-
-        tempChart.options.scales.x.max =
-            now;
-    }
-
-
-    if (humidityChart)
-    {
-        humidityChart.options.scales.x.min =
-            twoHoursAgo;
-
-        humidityChart.options.scales.x.max =
-            now;
     }
 }
 
@@ -796,9 +917,7 @@ function isDeviceOnline(
 
     return (
         Date.now() -
-        Number(
-            data.lastUpdate
-        )
+        Number(data.lastUpdate)
         <
         15000
     );
@@ -937,11 +1056,13 @@ function updateIndexStatus(
     {
         lastSeen.textContent =
             online
-            ? "Cập nhật: " +
-              getRelativeTime(
-                  lastReceiveTime
-              )
-            : "Chưa nhận dữ liệu";
+            ?
+            "Cập nhật: " +
+            getRelativeTime(
+                lastReceiveTime
+            )
+            :
+            "Chưa nhận dữ liệu";
     }
 }
 
@@ -1028,11 +1149,13 @@ function updateDashboardStatus(
     {
         lastSeen.textContent =
             online
-            ? "Cập nhật: " +
-              getRelativeTime(
-                  lastReceiveTime
-              )
-            : "Chưa nhận dữ liệu";
+            ?
+            "Cập nhật: " +
+            getRelativeTime(
+                lastReceiveTime
+            )
+            :
+            "Chưa nhận dữ liệu";
     }
 }
 
@@ -1074,11 +1197,13 @@ function updateHistoryStatus(
     {
         time.textContent =
             online
-            ? "Cập nhật: " +
-              getRelativeTime(
-                  lastReceiveTime
-              )
-            : "Chưa nhận dữ liệu";
+            ?
+            "Cập nhật: " +
+            getRelativeTime(
+                lastReceiveTime
+            )
+            :
+            "Chưa nhận dữ liệu";
     }
 }
 
@@ -1231,7 +1356,6 @@ function createHistoryChart(
         new Chart(
             canvas,
             {
-
                 type: "line",
 
                 data:
@@ -1240,7 +1364,6 @@ function createHistoryChart(
 
                     datasets:
                     [
-
                         {
                             label:
                                 "Nhiệt độ trung bình (°C)",
@@ -1258,7 +1381,6 @@ function createHistoryChart(
                                 3
                         },
 
-
                         {
                             label:
                                 "Độ ẩm trung bình (%)",
@@ -1275,10 +1397,8 @@ function createHistoryChart(
                             pointRadius:
                                 3
                         }
-
                     ]
                 },
-
 
                 options:
                 {
@@ -1300,7 +1420,6 @@ function createHistoryChart(
                             false
                     },
 
-
                     plugins:
                     {
                         legend:
@@ -1309,7 +1428,6 @@ function createHistoryChart(
                                 "top"
                         }
                     },
-
 
                     scales:
                     {
@@ -1323,7 +1441,6 @@ function createHistoryChart(
                         }
                     }
                 }
-
             }
         );
 }
@@ -1359,7 +1476,6 @@ function createHistoryTable(
         .forEach(
             item =>
             {
-
                 const row =
                     document.createElement(
                         "tr"
@@ -1367,7 +1483,6 @@ function createHistoryTable(
 
 
                 row.innerHTML = `
-
                     <td>
                         ${formatDate(
                             item.date
@@ -1387,14 +1502,12 @@ function createHistoryTable(
                         ).toFixed(2)}
                         %
                     </td>
-
                 `;
 
 
                 table.appendChild(
                     row
                 );
-
             }
         );
 }
@@ -1442,7 +1555,8 @@ function getRelativeTime(
 
     const minutes =
         Math.floor(
-            elapsed / 60
+            elapsed /
+            60
         );
 
 
@@ -1467,11 +1581,6 @@ function formatDate(
     }
 
 
-    /*
-     * Server trả về:
-     * DD/MM/YYYY
-     */
-
     return String(date);
 }
 
@@ -1483,7 +1592,6 @@ function formatDate(
 setInterval(
     () =>
     {
-
         if (!lastReceiveTime)
         {
             return;
@@ -1530,8 +1638,8 @@ setInterval(
 
 
         /*
-         * Cập nhật cửa sổ 2 giờ.
-         * Không thay đổi dữ liệu.
+         * Trục thời gian luôn chạy theo
+         * thời gian thực hiện tại.
          */
 
         if (
@@ -1539,13 +1647,16 @@ setInterval(
             humidityChart
         )
         {
-            updateRealtimeChartWindow();
+            updateRealtimeAxis();
 
-            tempChart?.update("none");
+            tempChart?.update(
+                "none"
+            );
 
-            humidityChart?.update("none");
+            humidityChart?.update(
+                "none"
+            );
         }
-
     },
     1000
 );
