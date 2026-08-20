@@ -953,7 +953,6 @@ function updateHistoryStatus(
     }
 }
 
-
 /* =====================================================
    HISTORY
 ===================================================== */
@@ -968,6 +967,22 @@ async function loadHistory()
             );
 
 
+        console.log(
+            "📊 Dữ liệu history:",
+            data
+        );
+
+
+        if (
+            !Array.isArray(data)
+        )
+        {
+            throw new Error(
+                "API /history không trả về mảng dữ liệu"
+            );
+        }
+
+
         createHistoryChart(
             data
         );
@@ -979,33 +994,74 @@ async function loadHistory()
 
 
         /*
-         * Lấy trạng thái mới nhất từ Render.
+         * Lấy trạng thái mới nhất của ESP32
          */
 
-        const latest =
-            await apiFetch(
-                "/data"
+        try
+        {
+            const latest =
+                await apiFetch(
+                    "/data"
+                );
+
+
+            updateGlobalDeviceStatus(
+                latest
             );
+        }
+
+        catch(error)
+        {
+            console.warn(
+                "⚠ Không lấy được trạng thái thiết bị:",
+                error
+            );
+        }
 
 
-        updateGlobalDeviceStatus(
-            latest
-        );
-
+        /*
+         * Kết nối SSE
+         */
 
         connectSSE();
 
     }
+
     catch(error)
     {
         console.error(
-            "Lỗi tải lịch sử:",
+            "❌ Lỗi tải lịch sử:",
             error
         );
+
+
+        const table =
+            document.getElementById(
+                "historyTable"
+            );
+
+
+        if (table)
+        {
+            table.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="3"
+                        style="text-align:center;"
+                    >
+
+                        Không thể tải dữ liệu lịch sử
+
+                    </td>
+
+                </tr>
+
+            `;
+        }
     }
 }
-
-
 /* =====================================================
    HISTORY CHART
 ===================================================== */

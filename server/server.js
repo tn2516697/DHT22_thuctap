@@ -897,59 +897,62 @@ app.get(
     }
 );
 
-
 // =====================================================
 // HISTORY
-// 30 NGÀY
+// 30 NGÀY GẦN NHẤT
 // =====================================================
 
 app.get(
     "/history",
-    async (req,res) => {
+    async (req, res) => {
 
         try {
 
-            const result =
-                await pool.query(`
+            const result = await pool.query(`
 
-                    SELECT
+                SELECT
 
-                        TO_CHAR(
-                            timestamp AT TIME ZONE
-                            'Asia/Ho_Chi_Minh',
-                            'DD/MM/YYYY'
-                        ) AS date,
-
-                        ROUND(
-                            AVG(temperature)::numeric,
-                            2
-                        ) AS avg_temperature,
-
-                        ROUND(
-                            AVG(humidity)::numeric,
-                            2
-                        ) AS avg_humidity
-
-                    FROM sensor_data
-
-                    WHERE timestamp >=
-                        NOW() - INTERVAL '30 days'
-
-                    GROUP BY
-
+                    TO_CHAR(
                         (
                             timestamp AT TIME ZONE
                             'Asia/Ho_Chi_Minh'
-                        )::date
+                        )::date,
+                        'DD/MM/YYYY'
+                    ) AS date,
 
-                    ORDER BY
+                    ROUND(
+                        AVG(temperature)::numeric,
+                        2
+                    ) AS avg_temperature,
 
-                        (
-                            timestamp AT TIME ZONE
-                            'Asia/Ho_Chi_Minh'
-                        )::date ASC
+                    ROUND(
+                        AVG(humidity)::numeric,
+                        2
+                    ) AS avg_humidity
 
-                `);
+                FROM sensor_data
+
+                WHERE timestamp >=
+                    NOW() - INTERVAL '30 days'
+
+                GROUP BY
+                    (
+                        timestamp AT TIME ZONE
+                        'Asia/Ho_Chi_Minh'
+                    )::date
+
+                ORDER BY
+                    (
+                        timestamp AT TIME ZONE
+                        'Asia/Ho_Chi_Minh'
+                    )::date ASC
+
+            `);
+
+
+            console.log(
+                `📊 HISTORY: ${result.rows.length} ngày`
+            );
 
 
             res.json(
@@ -958,12 +961,11 @@ app.get(
 
         }
 
-        catch(error)
-        {
+        catch (error) {
 
             console.error(
-                "History error:",
-                error.message
+                "❌ History error:",
+                error
             );
 
 
@@ -972,6 +974,9 @@ app.get(
                 .json({
 
                     error:
+                        "Không thể tải dữ liệu lịch sử",
+
+                    detail:
                         error.message
 
                 });
@@ -980,7 +985,6 @@ app.get(
 
     }
 );
-
 
 // =====================================================
 // HEALTH CHECK
