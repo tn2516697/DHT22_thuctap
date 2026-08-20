@@ -30,6 +30,13 @@ let eventSource = null;
 let lastReceiveTime = 0;
 
 
+/*
+ * Lưu thời gian thực của từng điểm dữ liệu.
+ * Chỉ phục vụ việc hiển thị trục X.
+ */
+let realtimeTimestamps = [];
+
+
 /* =====================================================
    PAGE DETECTION
 ===================================================== */
@@ -135,6 +142,12 @@ async function loadRealtimeHistory()
             );
 
 
+        /*
+         * Xóa dữ liệu cũ trước khi nạp lại.
+         */
+        realtimeTimestamps = [];
+
+
         data.forEach(
             record =>
             {
@@ -144,6 +157,13 @@ async function loadRealtimeHistory()
                 );
             }
         );
+
+
+        /*
+         * Cập nhật lại trục thời gian
+         * sau khi nạp toàn bộ 2 giờ dữ liệu.
+         */
+        updateRealtimeXAxis();
 
 
         if (tempChart)
@@ -246,7 +266,16 @@ function createRealtimeCharts()
                             {
                                 ticks:
                                 {
-                                    maxTicksLimit: 10
+                                    /*
+                                     * Các mốc thời gian
+                                     * sẽ được xử lý riêng
+                                     * bằng updateRealtimeXAxis().
+                                     */
+                                    autoSkip: false,
+
+                                    maxRotation: 0,
+
+                                    minRotation: 0
                                 }
                             }
                         }
@@ -308,7 +337,11 @@ function createRealtimeCharts()
                             {
                                 ticks:
                                 {
-                                    maxTicksLimit: 10
+                                    autoSkip: false,
+
+                                    maxRotation: 0,
+
+                                    minRotation: 0
                                 }
                             }
                         }
@@ -316,6 +349,226 @@ function createRealtimeCharts()
 
                 }
             );
+    }
+}
+
+
+/* =====================================================
+   UPDATE REALTIME X AXIS
+   2 GIỜ = 6 KHOẢNG × 20 PHÚT
+===================================================== */
+
+function updateRealtimeXAxis()
+{
+    if (
+        realtimeTimestamps.length === 0
+    )
+    {
+        return;
+    }
+
+
+    /*
+     * Thời gian đầu và cuối của dữ liệu
+     */
+    const firstTime =
+        realtimeTimestamps[0].getTime();
+
+    const lastTime =
+        realtimeTimestamps[
+            realtimeTimestamps.length - 1
+        ].getTime();
+
+
+    /*
+     * Khoảng thời gian hiển thị:
+     *
+     * 2 giờ = 120 phút
+     *
+     * 6 khoảng × 20 phút
+     */
+    const totalDuration =
+        2 * 60 * 60 * 1000;
+
+
+    const interval =
+        20 * 60 * 1000;
+
+
+    /*
+     * Mốc cuối lấy theo dữ liệu mới nhất.
+     */
+    const endTime =
+        lastTime;
+
+
+    /*
+     * Mốc đầu = 2 giờ trước mốc cuối.
+     */
+    const startTime =
+        endTime -
+        totalDuration;
+
+
+    /*
+     * Tạo 7 mốc:
+     *
+     * 0
+     * 20
+     * 40
+     * 60
+     * 80
+     * 100
+     * 120 phút
+     *
+     * => 6 khoảng, mỗi khoảng 20 phút.
+     */
+    const tickTimes = [];
+
+
+    for (
+        let i = 0;
+        i <= 6;
+        i++
+    )
+    {
+        tickTimes.push(
+            startTime +
+            i * interval
+        );
+    }
+
+
+    /*
+     * Tìm điểm dữ liệu gần nhất với
+     * từng mốc thời gian.
+     */
+    const tickIndexes =
+        tickTimes.map(
+            targetTime =>
+            {
+
+                let nearestIndex = 0;
+
+                let nearestDifference =
+                    Infinity;
+
+
+                realtimeTimestamps.forEach(
+                    (timestamp, index) =>
+                    {
+
+                        const difference =
+                            Math.abs(
+                                timestamp.getTime() -
+                                targetTime
+                            );
+
+
+                        if (
+                            difference <
+                            nearestDifference
+                        )
+                        {
+                            nearestDifference =
+                                difference;
+
+                            nearestIndex =
+                                index;
+                        }
+
+                    }
+                );
+
+
+                return nearestIndex;
+
+            }
+        );
+
+
+    /*
+     * Loại bỏ index trùng nhau.
+     */
+    const uniqueIndexes =
+        [
+            ...new Set(
+                tickIndexes
+            )
+        ];
+
+
+    /*
+     * Hàm tạo nhãn thời gian.
+     */
+    const formatTime =
+        timestamp =>
+        {
+
+            return timestamp.toLocaleTimeString(
+                "vi-VN",
+                {
+                    hour: "2-digit",
+
+                    minute: "2-digit"
+                }
+            );
+
+        };
+
+
+    /*
+     * Cập nhật cấu hình trục X
+     * cho cả hai biểu đồ.
+     */
+
+    if (tempChart)
+    {
+        tempChart.options.scales.x.ticks.callback =
+            function(value, index)
+            {
+
+                if (
+                    uniqueIndexes.includes(index)
+                )
+                {
+                    const timestamp =
+                        realtimeTimestamps[index];
+
+
+                    return formatTime(
+                        timestamp
+                    );
+                }
+
+
+                return "";
+            };
+    }
+
+
+    if (humidityChart)
+    {
+        humidityChart.options.scales.x.ticks.callback =
+            function(value, index)
+            {
+
+                if (
+                    uniqueIndexes.includes(index)
+                )
+                {
+                    const timestamp =
+                        realtimeTimestamps[index];
+
+
+                    return formatTime(
+                        timestamp
+                    );
+                }
+
+
+                return "";
+            };
     }
 }
 
@@ -457,6 +710,14 @@ function addRealtimePoint(
     }
 
 
+    /*
+     * Lưu timestamp thật.
+     */
+    realtimeTimestamps.push(
+        timestamp
+    );
+
+
     const time =
         timestamp.toLocaleTimeString(
             "vi-VN",
@@ -501,6 +762,12 @@ function addRealtimePoint(
 
 
     removeOldRealtimeData();
+
+
+    /*
+     * Cập nhật các mốc 20 phút.
+     */
+    updateRealtimeXAxis();
 
 
     if (updateChart)
@@ -549,6 +816,18 @@ function removeOldRealtimeData()
             humidityChart.data.datasets[0]
                 .data.shift();
         }
+    }
+
+
+    /*
+     * Đồng thời xóa timestamp tương ứng.
+     */
+    while (
+        realtimeTimestamps.length >
+        maxPoints
+    )
+    {
+        realtimeTimestamps.shift();
     }
 }
 
@@ -953,6 +1232,7 @@ function updateHistoryStatus(
     }
 }
 
+
 /* =====================================================
    HISTORY
 ===================================================== */
@@ -1062,6 +1342,8 @@ async function loadHistory()
         }
     }
 }
+
+
 /* =====================================================
    HISTORY CHART
 ===================================================== */
