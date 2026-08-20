@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+      content="width=device-width, initial-scale=1.0">
 
 <title>Giám sát môi trường thông minh</title>
 
@@ -14,15 +14,17 @@ content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="mobile.css">
 
 <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 </head>
+
 
 <body>
 
 <div class="container">
 
-    <!-- THANH BÊN -->
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -71,8 +73,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
             <h3>Thiết bị ESP32-C3</h3>
 
-            <br>
-
             <p id="deviceStatus">
 
                 <i class="fa-solid fa-circle"></i>
@@ -83,12 +83,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
             <p>Cảm biến AHT30</p>
 
-            <br>
-
             <small id="lastSeen">
-
                 Chưa nhận dữ liệu
-
             </small>
 
         </div>
@@ -96,190 +92,204 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </aside>
 
 
-    <!-- NỘI DUNG -->
+    <!-- MAIN -->
 
     <main class="main">
 
-        <header class="header">
-
-            <div>
-
-                <h1>
-                    Hệ thống giám sát môi trường
-                </h1>
-
-                <p>
-                    Hệ thống giám sát nhiệt độ và độ ẩm sử dụng ESP32-C3 và AHT30
-                </p>
-
-            </div>
+        <div class="main-content">
 
 
-            <div
-                class="status"
-                id="serverStatus">
+            <!-- HEADER -->
 
-                🔴 ESP32 Ngoại tuyến
+            <header class="header">
 
-            </div>
+                <div>
 
-        </header>
-
-
-        <!-- GIỚI THIỆU -->
-
-        <section class="intro-panel">
-
-            <div class="intro-icon">
-
-                <i class="fa-solid fa-leaf"></i>
-
-            </div>
-
-
-            <div>
-
-                <h2>
-                    Chào mừng đến với hệ thống giám sát
-                </h2>
-
-                <p>
-
-                    Hệ thống thu thập dữ liệu môi trường từ
-                    cảm biến AHT30 thông qua vi điều khiển ESP32-C3.
-                    Dữ liệu được truyền về máy chủ và lưu trữ trên
-                    cơ sở dữ liệu PostgreSQL.
-
-                </p>
-
-            </div>
-
-        </section>
-
-
-        <!-- CÁC CHỨC NĂNG -->
-
-        <section class="panel">
-
-            <div class="panel-title">
-
-                Chức năng của hệ thống
-
-            </div>
-
-
-            <div class="feature-grid">
-
-                <div class="feature-card">
-
-                    <i class="fa-solid fa-chart-line"></i>
-
-                    <h3>
-                        Giám sát thời gian thực
-                    </h3>
+                    <h1>
+                        Hệ thống giám sát môi trường
+                    </h1>
 
                     <p>
-                        Theo dõi nhiệt độ, độ ẩm,
-                        quạt và cảnh báo theo thời gian thực.
+                        Hệ thống giám sát nhiệt độ và độ ẩm sử dụng ESP32-C3 và AHT30
                     </p>
 
                 </div>
 
 
-                <div class="feature-card">
+                <div
+                    class="status"
+                    id="serverStatus">
 
-                    <i class="fa-solid fa-database"></i>
+                    🔴 ESP32 Ngoại tuyến
 
-                    <h3>
-                        Lưu trữ dữ liệu
-                    </h3>
+                </div>
+
+            </header>
+
+
+            <!-- INTRO -->
+
+            <section class="intro-panel">
+
+                <div class="intro-icon">
+
+                    <i class="fa-solid fa-leaf"></i>
+
+                </div>
+
+
+                <div>
+
+                    <h2>
+                        Chào mừng đến với hệ thống giám sát
+                    </h2>
 
                     <p>
-                        Dữ liệu cảm biến được lưu trữ
-                        trên cơ sở dữ liệu PostgreSQL.
+
+                        Hệ thống thu thập dữ liệu môi trường từ
+                        cảm biến AHT30 thông qua vi điều khiển ESP32-C3.
+                        Dữ liệu được truyền về máy chủ và lưu trữ trên
+                        cơ sở dữ liệu PostgreSQL.
+
                     </p>
 
                 </div>
 
-
-                <div class="feature-card">
-
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-
-                    <h3>
-                        Xem lịch sử
-                    </h3>
-
-                    <p>
-                        Xem và phân tích dữ liệu môi trường
-                        trong 30 ngày gần nhất.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
+            </section>
 
 
-        <!-- TRẠNG THÁI -->
+            <!-- FEATURES -->
 
-        <section class="panel">
+            <section class="panel">
 
-            <div class="panel-title">
-                Trạng thái hệ thống
-            </div>
+                <div class="panel-title">
 
-
-            <div class="status-grid">
-
-                <div class="status-item">
-
-                    <h3>
-                        Vi điều khiển
-                    </h3>
-
-                    <p id="espStatus">
-                        🔴 Ngoại tuyến
-                    </p>
+                    Chức năng của hệ thống
 
                 </div>
 
 
-                <div class="status-item">
+                <div class="feature-grid">
 
-                    <h3>
-                        Cảm biến
-                    </h3>
 
-                    <p id="sensorStatus">
-                        Chưa kết nối
-                    </p>
+                    <div class="feature-card">
+
+                        <i class="fa-solid fa-chart-line"></i>
+
+                        <h3>
+                            Giám sát thời gian thực
+                        </h3>
+
+                        <p>
+                            Theo dõi nhiệt độ, độ ẩm,
+                            quạt và cảnh báo theo thời gian thực.
+                        </p>
+
+                    </div>
+
+
+                    <div class="feature-card">
+
+                        <i class="fa-solid fa-database"></i>
+
+                        <h3>
+                            Lưu trữ dữ liệu
+                        </h3>
+
+                        <p>
+                            Dữ liệu cảm biến được lưu trữ
+                            trên cơ sở dữ liệu PostgreSQL.
+                        </p>
+
+                    </div>
+
+
+                    <div class="feature-card">
+
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+
+                        <h3>
+                            Xem lịch sử
+                        </h3>
+
+                        <p>
+                            Xem và phân tích dữ liệu môi trường
+                            trong 30 ngày gần nhất.
+                        </p>
+
+                    </div>
+
 
                 </div>
 
+            </section>
 
-                <div class="status-item">
 
-                    <h3>
-                        Cơ sở dữ liệu
-                    </h3>
+            <!-- STATUS -->
 
-                    <p>
-                        🟢 PostgreSQL
-                    </p>
+            <section class="panel">
+
+                <div class="panel-title">
+                    Trạng thái hệ thống
+                </div>
+
+
+                <div class="status-grid">
+
+
+                    <div class="status-item">
+
+                        <h3>
+                            Vi điều khiển
+                        </h3>
+
+                        <p id="espStatus">
+                            🔴 Ngoại tuyến
+                        </p>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <h3>
+                            Cảm biến
+                        </h3>
+
+                        <p id="sensorStatus">
+                            Chưa kết nối
+                        </p>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <h3>
+                            Cơ sở dữ liệu
+                        </h3>
+
+                        <p>
+                            🟢 PostgreSQL
+                        </p>
+
+                    </div>
+
 
                 </div>
 
-            </div>
+            </section>
 
-        </section>
+
+        </div>
 
     </main>
 
 </div>
 
+
 <script src="script.js"></script>
 
 </body>
+
 </html>

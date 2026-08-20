@@ -1,22 +1,26 @@
-/* =====================================
-   HỆ THỐNG GIÁM SÁT MÔI TRƯỜNG
+/* ============================================
+   SMART ENVIRONMENT MONITORING
+   ESP32 + AHT30 + PostgreSQL + Render
 
-   ESP32-C3
-   AHT30
-   PostgreSQL
+   WEB:
+   https://dht22-thuctap.onrender.com
 
-   - Dữ liệu thời gian thực bằng SSE
-   - Biểu đồ giữ 2 giờ gần nhất
-   - F5 không làm mất dữ liệu biểu đồ
-===================================== */
-
-
-const SERVER_URL = "";
+   API:
+   https://dht22-thuctap.onrender.com
+============================================ */
 
 
-/* ==========================
-   BIỂU ĐỒ
-========================== */
+/* =====================================================
+   SERVER
+===================================================== */
+
+const SERVER_URL =
+    "https://dht22-thuctap.onrender.com";
+
+
+/* =====================================================
+   GLOBAL
+===================================================== */
 
 let tempChart = null;
 
@@ -24,46 +28,40 @@ let humidityChart = null;
 
 let historyChart = null;
 
-
-/* ==========================
-   THỜI ĐIỂM NHẬN DỮ LIỆU
-========================== */
+let eventSource = null;
 
 let lastReceiveTime = 0;
 
 
-/* ==========================
+/* =====================================================
    PAGE DETECTION
-========================== */
+===================================================== */
 
 document.addEventListener(
     "DOMContentLoaded",
     () => {
 
-        const page =
+        const path =
             window.location.pathname;
 
 
         if (
-            page.includes("index.html") ||
-            page === "/" ||
-            page.endsWith("/")
+            path === "/" ||
+            path.includes("index.html")
         )
         {
             loadHome();
         }
 
-
-        if (
-            page.includes("dashboard.html")
+        else if (
+            path.includes("dashboard.html")
         )
         {
             loadDashboard();
         }
 
-
-        if (
-            page.includes("history.html")
+        else if (
+            path.includes("history.html")
         )
         {
             loadHistory();
@@ -73,288 +71,83 @@ document.addEventListener(
 );
 
 
-/* ==================================================
-   TRANG TỔNG QUAN
-================================================== */
+/* =====================================================
+   API HELPER
+===================================================== */
 
-function loadHome()
-{
-
-    connectSSE();
-
-}
-
-
-/* ==================================================
-   CẬP NHẬT TRANG TỔNG QUAN
-================================================== */
-
-function updateHomeValue(data)
-{
-
-    const sensorStatus =
-        document.getElementById(
-            "sensorStatus"
-        );
-
-
-    if (sensorStatus)
-    {
-
-        sensorStatus.innerHTML =
-            "🟢 AHT30 đang hoạt động";
-
-    }
-
-
-    updateEnvironmentState(
-        data
-    );
-
-}
-
-
-/* ==================================================
-   KIỂM TRA ESP32
-================================================== */
-
-function isDeviceOnline(data)
-{
-
-    if (
-        !data ||
-        !data.lastUpdate
-    )
-    {
-        return false;
-    }
-
-
-    return (
-        Date.now() -
-        Number(data.lastUpdate)
-        < 15000
-    );
-
-}
-
-
-/* ==================================================
-   CẬP NHẬT TRẠNG THÁI TOÀN HỆ THỐNG
-================================================== */
-
-function updateGlobalDeviceStatus(data)
-{
-
-    const online =
-        isDeviceOnline(data);
-
-
-    if (data.lastUpdate)
-    {
-
-        lastReceiveTime =
-            Number(
-                data.lastUpdate
-            );
-
-    }
-
-
-    updateConnectionStatus(
-        online
-    );
-
-
-    updateDashboardStatus(
-        online
-    );
-
-
-    updateHistoryStatus(
-        online
-    );
-
-}
-
-
-/* ==================================================
-   INDEX STATUS
-================================================== */
-
-function updateConnectionStatus(
-    online
+async function apiFetch(
+    endpoint
 )
 {
-
-    const serverStatus =
-        document.getElementById(
-            "serverStatus"
-        );
-
-
-    const deviceStatus =
-        document.getElementById(
-            "deviceStatus"
-        );
-
-
-    const espStatus =
-        document.getElementById(
-            "espStatus"
-        );
-
-
-    const lastSeen =
-        document.getElementById(
-            "lastSeen"
-        );
-
-
-    if (serverStatus)
-    {
-
-        serverStatus.innerHTML =
-            online
-            ? "🟢 ESP32 Trực tuyến"
-            : "🔴 ESP32 Ngoại tuyến";
-
-    }
-
-
-    if (deviceStatus)
-    {
-
-        deviceStatus.innerHTML =
-            online
-            ?
-            `<i class="fa-solid fa-circle online"></i>
-             ESP32 Trực tuyến`
-            :
-            `<i class="fa-solid fa-circle"></i>
-             ESP32 Ngoại tuyến`;
-
-    }
-
-
-    if (espStatus)
-    {
-
-        espStatus.innerHTML =
-            online
-            ? "🟢 Trực tuyến"
-            : "🔴 Ngoại tuyến";
-
-    }
-
-
-    if (lastSeen)
-    {
-
-        lastSeen.innerHTML =
-            online
-            ?
-            "Cập nhật: "
-            +
-            formatTime(
-                lastReceiveTime
-            )
-            :
-            "Chưa nhận dữ liệu";
-
-    }
-
-}
-
-
-/* ==================================================
-   TRẠNG THÁI MÔI TRƯỜNG
-================================================== */
-
-function updateEnvironmentState(data)
-{
-
-    /*
-     * Index hiện tại không còn card
-     * nhiệt độ / độ ẩm.
-     *
-     * Giữ hàm để tránh lỗi nếu sau này
-     * bạn thêm lại.
-     */
-
-}
-
-
-/* ==================================================
-   DASHBOARD
-================================================== */
-
-async function loadDashboard()
-{
-
-    /*
-     * Bước 1:
-     * Lấy dữ liệu 2 giờ gần nhất
-     */
-
-    await loadRealtimeHistory();
-
-
-    /*
-     * Bước 2:
-     * Kết nối dữ liệu thời gian thực
-     */
-
-    connectSSE();
-
-}
-
-
-/* ==================================================
-   LẤY DỮ LIỆU 2 GIỜ GẦN NHẤT
-================================================== */
-
-async function loadRealtimeHistory()
-{
-
-    try
-    {
-
-        const response =
-            await fetch(
-                SERVER_URL +
-                "/realtime"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        createRealtimeCharts();
-
-
-        /*
-         * Nạp lại toàn bộ dữ liệu
-         * 2 giờ vào biểu đồ.
-         */
-
-        data.forEach(
-            record =>
+    const response =
+        await fetch(
+            SERVER_URL + endpoint,
             {
-
-                addRealtimePoint(
-                    record,
-                    false
-                );
-
+                cache: "no-store"
             }
         );
 
 
-        /*
-         * Chỉ cập nhật biểu đồ một lần
-         */
+    if (!response.ok)
+    {
+        throw new Error(
+            `HTTP ${response.status}`
+        );
+    }
+
+
+    return response.json();
+}
+
+
+/* =====================================================
+   INDEX
+===================================================== */
+
+function loadHome()
+{
+    connectSSE();
+}
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+async function loadDashboard()
+{
+    createRealtimeCharts();
+
+    await loadRealtimeHistory();
+
+    connectSSE();
+}
+
+
+/* =====================================================
+   LOAD REALTIME HISTORY
+===================================================== */
+
+async function loadRealtimeHistory()
+{
+    try
+    {
+        const data =
+            await apiFetch(
+                "/realtime"
+            );
+
+
+        data.forEach(
+            record =>
+            {
+                addRealtimePoint(
+                    record,
+                    false
+                );
+            }
+        );
+
 
         if (tempChart)
         {
@@ -367,54 +160,23 @@ async function loadRealtimeHistory()
             humidityChart.update();
         }
 
-
-        /*
-         * Lấy bản ghi mới nhất
-         */
-
-        if (data.length > 0)
-        {
-
-            const latest =
-                data[data.length - 1];
-
-
-            /*
-             * Không dùng timestamp cảm biến
-             * làm thời gian online.
-             *
-             * Lấy server /data sau đó.
-             */
-
-            updateDeviceStatus(
-                latest
-            );
-
-        }
-
-
     }
-
     catch(error)
     {
-
-        console.log(
-            "Không thể tải dữ liệu 2 giờ:",
+        console.error(
+            "Không thể tải dữ liệu realtime:",
             error
         );
-
     }
-
 }
 
 
-/* ==================================================
-   TẠO BIỂU ĐỒ
-================================================== */
+/* =====================================================
+   CREATE REALTIME CHARTS
+===================================================== */
 
 function createRealtimeCharts()
 {
-
     const tempCanvas =
         document.getElementById(
             "tempChart"
@@ -436,13 +198,8 @@ function createRealtimeCharts()
     }
 
 
-    /*
-     * Tránh tạo lại biểu đồ
-     */
-
     if (!tempChart)
     {
-
         tempChart =
             new Chart(
                 tempCanvas,
@@ -452,14 +209,11 @@ function createRealtimeCharts()
 
                     data:
                     {
-
                         labels: [],
 
                         datasets:
                         [
-
                             {
-
                                 label:
                                     "Nhiệt độ (°C)",
 
@@ -470,52 +224,44 @@ function createRealtimeCharts()
                                 tension: 0.3,
 
                                 pointRadius: 2
-
                             }
-
                         ]
-
                     },
 
                     options:
                     {
-
                         responsive: true,
 
-                        maintainAspectRatio:
-                            false,
+                        maintainAspectRatio: false,
 
                         animation: false,
 
+                        interaction:
+                        {
+                            mode: "index",
+
+                            intersect: false
+                        },
+
                         scales:
                         {
-
                             x:
                             {
-
                                 ticks:
                                 {
-
-                                    maxTicksLimit:
-                                        10
-
+                                    maxTicksLimit: 10
                                 }
-
                             }
-
                         }
-
                     }
 
                 }
             );
-
     }
 
 
     if (!humidityChart)
     {
-
         humidityChart =
             new Chart(
                 humCanvas,
@@ -525,14 +271,11 @@ function createRealtimeCharts()
 
                     data:
                     {
-
                         labels: [],
 
                         datasets:
                         [
-
                             {
-
                                 label:
                                     "Độ ẩm (%)",
 
@@ -543,83 +286,80 @@ function createRealtimeCharts()
                                 tension: 0.3,
 
                                 pointRadius: 2
-
                             }
-
                         ]
-
                     },
 
                     options:
                     {
-
                         responsive: true,
 
-                        maintainAspectRatio:
-                            false,
+                        maintainAspectRatio: false,
 
                         animation: false,
 
+                        interaction:
+                        {
+                            mode: "index",
+
+                            intersect: false
+                        },
+
                         scales:
                         {
-
                             x:
                             {
-
                                 ticks:
                                 {
-
-                                    maxTicksLimit:
-                                        10
-
+                                    maxTicksLimit: 10
                                 }
-
                             }
-
                         }
-
                     }
 
                 }
             );
-
     }
-
 }
 
 
-/* ==================================================
+/* =====================================================
    SSE
-================================================== */
+===================================================== */
 
 function connectSSE()
 {
+    /*
+     * Không tạo nhiều SSE connection
+     * trên cùng một trang.
+     */
 
-    const source =
+    if (eventSource)
+    {
+        return;
+    }
+
+
+    eventSource =
         new EventSource(
-            SERVER_URL +
-            "/events"
+            SERVER_URL + "/events"
         );
 
 
-    source.onopen =
-        function()
+    eventSource.onopen =
+        () =>
         {
-
             console.log(
-                "✅ SSE đã kết nối"
+                "✅ SSE connected to Render"
             );
-
         };
 
 
-    source.onmessage =
-        function(event)
+    eventSource.onmessage =
+        event =>
         {
-
             try
             {
-
                 const data =
                     JSON.parse(
                         event.data
@@ -630,92 +370,72 @@ function connectSSE()
                     data.lastUpdate
                 )
                 {
-
                     lastReceiveTime =
                         Number(
                             data.lastUpdate
                         );
-
                 }
 
 
-                /*
-                 * Cập nhật dashboard
-                 */
-
-                updateDeviceStatus(
+                updateDashboardValues(
                     data
                 );
 
 
-                /*
-                 * Cập nhật biểu đồ
-                 */
+                updateGlobalDeviceStatus(
+                    data
+                );
+
 
                 if (
                     tempChart ||
                     humidityChart
                 )
                 {
-
                     addRealtimePoint(
                         data,
                         true
                     );
-
                 }
 
-
-                /*
-                 * Cập nhật trạng thái
-                 */
-
-                updateGlobalDeviceStatus(
-                    data
-                );
-
             }
-
             catch(error)
             {
-
-                console.log(
+                console.error(
                     "SSE data error:",
                     error
                 );
-
             }
-
         };
 
 
-    source.onerror =
-        function()
+    eventSource.onerror =
+        () =>
         {
-
-            console.log(
+            console.warn(
                 "⚠ SSE mất kết nối"
             );
 
-            updateDashboardStatus(
-                false
+
+            updateGlobalDeviceStatus(
+                {
+                    lastUpdate:
+                        lastReceiveTime
+                }
             );
-
         };
-
 }
 
 
-/* ==================================================
-   THÊM ĐIỂM VÀO BIỂU ĐỒ
-================================================== */
+/* =====================================================
+   REALTIME POINT
+===================================================== */
 
 function addRealtimePoint(
     data,
     updateChart = true
 )
 {
-
     if (
         !data.timestamp
     )
@@ -745,20 +465,14 @@ function addRealtimePoint(
             "vi-VN",
             {
                 hour: "2-digit",
+
                 minute: "2-digit"
             }
         );
 
 
-    /*
-     * =================================
-     * BIỂU ĐỒ NHIỆT ĐỘ
-     * =================================
-     */
-
     if (tempChart)
     {
-
         tempChart.data.labels.push(
             time
         );
@@ -770,19 +484,11 @@ function addRealtimePoint(
                     data.temperature
                 )
             );
-
     }
 
 
-    /*
-     * =================================
-     * BIỂU ĐỒ ĐỘ ẨM
-     * =================================
-     */
-
     if (humidityChart)
     {
-
         humidityChart.data.labels.push(
             time
         );
@@ -794,111 +500,79 @@ function addRealtimePoint(
                     data.humidity
                 )
             );
-
     }
 
-
-    /*
-     * =================================
-     * CHỈ GIỮ DỮ LIỆU TRONG 2 GIỜ
-     *
-     * Không dùng số lượng điểm cố định.
-     * Dựa vào timestamp thực tế.
-     * =================================
-     */
 
     removeOldRealtimeData();
 
 
     if (updateChart)
     {
+        tempChart?.update();
 
-        if (tempChart)
-        {
-            tempChart.update();
-        }
-
-
-        if (humidityChart)
-        {
-            humidityChart.update();
-        }
-
+        humidityChart?.update();
     }
-
 }
 
 
-/* ==================================================
-   XÓA DỮ LIỆU QUÁ 2 GIỜ
-================================================== */
+/* =====================================================
+   KEEP 2 HOURS
+===================================================== */
 
 function removeOldRealtimeData()
 {
-
-    if (!tempChart)
-        return;
-
-
     /*
-     * Biểu đồ dùng labels dạng HH:mm
-     * nên ta giới hạn theo số điểm dựa
-     * trên timestamp thực tế không thể
-     * làm chính xác tuyệt đối ở đây.
+     * ESP32 gửi mỗi 3 giây.
      *
-     * Vì ESP32 thường gửi đều nhau,
-     * ta giới hạn số điểm theo dữ liệu
-     * được lấy từ server.
+     * 2 giờ ≈ 2400 điểm.
+     *
+     * Giữ tối đa 2500 điểm để tránh
+     * biểu đồ phát triển vô hạn.
      */
 
     const maxPoints =
-        240;
+        2500;
 
 
-    while (
-        tempChart.data.labels.length
-        >
-        maxPoints
-    )
+    if (tempChart)
     {
+        while (
+            tempChart.data.labels.length >
+            maxPoints
+        )
+        {
+            tempChart.data.labels.shift();
 
-        tempChart.data.labels.shift();
-
-        tempChart.data.datasets[0]
-            .data.shift();
-
+            tempChart.data.datasets[0]
+                .data.shift();
+        }
     }
 
 
     if (humidityChart)
     {
-
         while (
-            humidityChart.data.labels.length
-            >
+            humidityChart.data.labels.length >
             maxPoints
         )
         {
-
             humidityChart.data.labels.shift();
 
             humidityChart.data.datasets[0]
                 .data.shift();
-
         }
-
     }
-
 }
 
 
-/* ==================================================
+/* =====================================================
    DASHBOARD VALUES
-================================================== */
+===================================================== */
 
-function updateDeviceStatus(data)
+function updateDashboardValues(
+    data
+)
 {
-
     const temp =
         document.getElementById(
             "dashboardTemp"
@@ -931,79 +605,231 @@ function updateDeviceStatus(data)
 
     if (temp)
     {
-
-        temp.innerHTML =
+        temp.textContent =
             Number(
                 data.temperature
             ).toFixed(2)
             +
             " °C";
-
     }
 
 
     if (hum)
     {
-
-        hum.innerHTML =
+        hum.textContent =
             Number(
                 data.humidity
             ).toFixed(2)
             +
             " %";
-
     }
 
 
     if (fan)
     {
-
-        fan.innerHTML =
+        fan.textContent =
             data.fan
-            ?
-            "🟢 BẬT"
-            :
-            "⚪ TẮT";
-
+            ? "🟢 BẬT"
+            : "⚪ TẮT";
     }
 
 
     if (alarm)
     {
-
-        alarm.innerHTML =
+        alarm.textContent =
             data.buzzer
-            ?
-            "🔴 BẬT"
-            :
-            "⚪ TẮT";
-
+            ? "🔴 BẬT"
+            : "⚪ TẮT";
     }
 
 
     if (update)
     {
-
-        update.innerHTML =
-            formatTime(
+        update.textContent =
+            getRelativeTime(
                 lastReceiveTime
             );
-
     }
-
 }
 
 
-/* ==================================================
-   TRẠNG THÁI DASHBOARD
-================================================== */
+/* =====================================================
+   DEVICE ONLINE
+===================================================== */
+
+function isDeviceOnline(
+    data
+)
+{
+    if (
+        !data ||
+        !data.lastUpdate
+    )
+    {
+        return false;
+    }
+
+
+    return (
+        Date.now() -
+        Number(data.lastUpdate)
+        < 15000
+    );
+}
+
+
+/* =====================================================
+   GLOBAL STATUS
+===================================================== */
+
+function updateGlobalDeviceStatus(
+    data
+)
+{
+    if (
+        data &&
+        data.lastUpdate
+    )
+    {
+        lastReceiveTime =
+            Number(
+                data.lastUpdate
+            );
+    }
+
+
+    const online =
+        isDeviceOnline(data);
+
+
+    updateIndexStatus(
+        online
+    );
+
+
+    updateDashboardStatus(
+        online
+    );
+
+
+    updateHistoryStatus(
+        online
+    );
+
+
+    if (data)
+    {
+        updateDashboardValues(
+            data
+        );
+    }
+}
+
+
+/* =====================================================
+   INDEX STATUS
+===================================================== */
+
+function updateIndexStatus(
+    online
+)
+{
+    const serverStatus =
+        document.getElementById(
+            "serverStatus"
+        );
+
+
+    const deviceStatus =
+        document.getElementById(
+            "deviceStatus"
+        );
+
+
+    const espStatus =
+        document.getElementById(
+            "espStatus"
+        );
+
+
+    const sensorStatus =
+        document.getElementById(
+            "sensorStatus"
+        );
+
+
+    const lastSeen =
+        document.getElementById(
+            "lastSeen"
+        );
+
+
+    if (serverStatus)
+    {
+        serverStatus.textContent =
+            online
+            ? "🟢 ESP32 Trực tuyến"
+            : "🔴 ESP32 Ngoại tuyến";
+    }
+
+
+    if (deviceStatus)
+    {
+        deviceStatus.innerHTML =
+            online
+
+            ?
+
+            `<i class="fa-solid fa-circle online"></i>
+             ESP32 Trực tuyến`
+
+            :
+
+            `<i class="fa-solid fa-circle"></i>
+             ESP32 Ngoại tuyến`;
+    }
+
+
+    if (espStatus)
+    {
+        espStatus.textContent =
+            online
+            ? "🟢 Trực tuyến"
+            : "🔴 Ngoại tuyến";
+    }
+
+
+    if (sensorStatus)
+    {
+        sensorStatus.textContent =
+            online
+            ? "🟢 AHT30 đang hoạt động"
+            : "🔴 Chưa kết nối";
+    }
+
+
+    if (lastSeen)
+    {
+        lastSeen.textContent =
+            online
+            ? "Cập nhật: " +
+              getRelativeTime(
+                  lastReceiveTime
+              )
+            : "Chưa nhận dữ liệu";
+    }
+}
+
+
+/* =====================================================
+   DASHBOARD STATUS
+===================================================== */
 
 function updateDashboardStatus(
     online
 )
 {
-
-    const statusBox =
+    const status =
         document.getElementById(
             "dashboardServerStatus"
         );
@@ -1033,88 +859,71 @@ function updateDashboardStatus(
         );
 
 
-    if (statusBox)
+    if (status)
     {
-
-        statusBox.innerHTML =
+        status.textContent =
             online
-            ?
-            "🟢 Đang nhận dữ liệu"
-            :
-            "🔴 Mất kết nối";
-
+            ? "🟢 Đang nhận dữ liệu"
+            : "🔴 Mất kết nối";
     }
 
 
     if (realtime)
     {
-
-        realtime.innerHTML =
+        realtime.textContent =
             online
-            ?
-            "🟢 Trực tuyến"
-            :
-            "🔴 Ngoại tuyến";
-
+            ? "🟢 Trực tuyến"
+            : "🔴 Ngoại tuyến";
     }
 
 
     if (stream)
     {
-
-        stream.innerHTML =
+        stream.textContent =
             online
-            ?
-            "🟢 Đang hoạt động"
-            :
-            "🔴 Đã dừng";
-
+            ? "🟢 Đang hoạt động"
+            : "🔴 Đã dừng";
     }
 
 
     if (device)
     {
-
         device.innerHTML =
             online
+
             ?
+
             `<i class="fa-solid fa-circle online"></i>
              ESP32 Trực tuyến`
+
             :
+
             `<i class="fa-solid fa-circle"></i>
              ESP32 Ngoại tuyến`;
-
     }
 
 
     if (lastSeen)
     {
-
-        lastSeen.innerHTML =
+        lastSeen.textContent =
             online
-            ?
-            "Cập nhật: "
-            +
-            formatTime(
-                lastReceiveTime
-            )
-            :
-            "Chưa nhận dữ liệu";
-
+            ? "Cập nhật: " +
+              getRelativeTime(
+                  lastReceiveTime
+              )
+            : "Chưa nhận dữ liệu";
     }
-
 }
 
 
-/* ==================================================
+/* =====================================================
    HISTORY STATUS
-================================================== */
+===================================================== */
 
 function updateHistoryStatus(
     online
 )
 {
-
     const status =
         document.getElementById(
             "historyDeviceStatus"
@@ -1127,82 +936,48 @@ function updateHistoryStatus(
         );
 
 
-    if (!status)
-        return;
+    if (status)
+    {
+        status.innerHTML =
+            online
 
+            ?
 
-    status.innerHTML =
-        online
-        ?
-        `<i class="fa-solid fa-circle online"></i>
-         ESP32 Trực tuyến`
-        :
-        `<i class="fa-solid fa-circle"></i>
-         ESP32 Ngoại tuyến`;
+            `<i class="fa-solid fa-circle online"></i>
+             ESP32 Trực tuyến`
+
+            :
+
+            `<i class="fa-solid fa-circle"></i>
+             ESP32 Ngoại tuyến`;
+    }
 
 
     if (time)
     {
-
-        time.innerHTML =
+        time.textContent =
             online
-            ?
-            "Cập nhật: "
-            +
-            formatTime(
-                lastReceiveTime
-            )
-            :
-            "Chưa nhận dữ liệu";
-
+            ? "Cập nhật: " +
+              getRelativeTime(
+                  lastReceiveTime
+              )
+            : "Chưa nhận dữ liệu";
     }
-
 }
 
 
-/* ==================================================
-   OFFLINE
-================================================== */
-
-function updateOfflineStatus()
-{
-
-    updateConnectionStatus(
-        false
-    );
-
-
-    updateDashboardStatus(
-        false
-    );
-
-
-    updateHistoryStatus(
-        false
-    );
-
-}
-
-
-/* ==================================================
+/* =====================================================
    HISTORY
-================================================== */
+===================================================== */
 
 async function loadHistory()
 {
-
     try
     {
-
-        const response =
-            await fetch(
-                SERVER_URL +
+        const data =
+            await apiFetch(
                 "/history"
             );
-
-
-        const data =
-            await response.json();
 
 
         createHistoryChart(
@@ -1221,18 +996,13 @@ async function loadHistory()
 
 
         /*
-         * Lấy trạng thái mới nhất
+         * Lấy trạng thái mới nhất từ Render.
          */
 
-        const latestResponse =
-            await fetch(
-                SERVER_URL +
+        const latest =
+            await apiFetch(
                 "/data"
             );
-
-
-        const latest =
-            await latestResponse.json();
 
 
         updateGlobalDeviceStatus(
@@ -1240,37 +1010,27 @@ async function loadHistory()
         );
 
 
-        /*
-         * History cũng kết nối SSE
-         * để thời gian cập nhật thay đổi.
-         */
-
         connectSSE();
 
     }
-
     catch(error)
     {
-
-        console.log(
+        console.error(
             "Lỗi tải lịch sử:",
             error
         );
-
     }
-
 }
 
 
-/* ==================================================
+/* =====================================================
    HISTORY CHART
-================================================== */
+===================================================== */
 
 function createHistoryChart(
     data
 )
 {
-
     const canvas =
         document.getElementById(
             "historyChart"
@@ -1278,7 +1038,9 @@ function createHistoryChart(
 
 
     if (!canvas)
+    {
         return;
+    }
 
 
     const labels =
@@ -1317,109 +1079,103 @@ function createHistoryChart(
 
                 data:
                 {
-
-                    labels: labels,
+                    labels,
 
                     datasets:
                     [
 
                         {
-
                             label:
                                 "Nhiệt độ trung bình (°C)",
 
                             data:
                                 temperatures,
 
-                            borderWidth: 2,
+                            borderWidth:
+                                2,
 
-                            tension: 0.3,
+                            tension:
+                                0.3,
 
-                            pointRadius: 2
-
+                            pointRadius:
+                                3
                         },
 
-
                         {
-
                             label:
                                 "Độ ẩm trung bình (%)",
 
                             data:
                                 humidities,
 
-                            borderWidth: 2,
+                            borderWidth:
+                                2,
 
-                            tension: 0.3,
+                            tension:
+                                0.3,
 
-                            pointRadius: 2
-
+                            pointRadius:
+                                3
                         }
 
                     ]
-
                 },
-
 
                 options:
                 {
-
-                    responsive: true,
+                    responsive:
+                        true,
 
                     maintainAspectRatio:
                         false,
 
-                    animation: false,
+                    animation:
+                        false,
+
+                    interaction:
+                    {
+                        mode:
+                            "index",
+
+                        intersect:
+                            false
+                    },
 
                     plugins:
                     {
-
                         legend:
                         {
-
                             position:
                                 "top"
-
                         }
-
                     },
-
 
                     scales:
                     {
-
                         x:
                         {
-
                             ticks:
                             {
-
                                 maxTicksLimit:
                                     10
-
                             }
-
                         }
-
                     }
-
                 }
 
             }
         );
-
 }
 
 
-/* ==================================================
+/* =====================================================
    HISTORY TABLE
-================================================== */
+===================================================== */
 
 function createHistoryTable(
     data
 )
 {
-
     const table =
         document.getElementById(
             "historyTable"
@@ -1427,10 +1183,13 @@ function createHistoryTable(
 
 
     if (!table)
+    {
         return;
+    }
 
 
-    table.innerHTML = "";
+    table.innerHTML =
+        "";
 
 
     data
@@ -1440,49 +1199,54 @@ function createHistoryTable(
             item =>
             {
 
-                table.innerHTML += `
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
 
-                    <tr>
 
-                        <td>
-                            ${formatDate(
-                                item.date
-                            )}
-                        </td>
+                row.innerHTML = `
 
-                        <td>
-                            ${Number(
-                                item.avg_temperature
-                            ).toFixed(2)}
-                            °C
-                        </td>
+                    <td>
+                        ${formatDate(
+                            item.date
+                        )}
+                    </td>
 
-                        <td>
-                            ${Number(
-                                item.avg_humidity
-                            ).toFixed(2)}
-                            %
-                        </td>
+                    <td>
+                        ${Number(
+                            item.avg_temperature
+                        ).toFixed(2)}
+                        °C
+                    </td>
 
-                    </tr>
+                    <td>
+                        ${Number(
+                            item.avg_humidity
+                        ).toFixed(2)}
+                        %
+                    </td>
 
                 `;
 
+
+                table.appendChild(
+                    row
+                );
+
             }
         );
-
 }
 
 
-/* ==================================================
-   DỰ ĐOÁN
-================================================== */
+/* =====================================================
+   PREDICTION
+===================================================== */
 
 function calculatePrediction(
     data
 )
 {
-
     if (
         data.length < 3
     )
@@ -1491,7 +1255,7 @@ function calculatePrediction(
     }
 
 
-    const tempValues =
+    const temperatures =
         data.map(
             item =>
                 Number(
@@ -1500,7 +1264,7 @@ function calculatePrediction(
         );
 
 
-    const humValues =
+    const humidities =
         data.map(
             item =>
                 Number(
@@ -1511,13 +1275,13 @@ function calculatePrediction(
 
     const predictedTemp =
         linearPrediction(
-            tempValues
+            temperatures
         );
 
 
     const predictedHum =
         linearPrediction(
-            humValues
+            humidities
         );
 
 
@@ -1535,37 +1299,31 @@ function calculatePrediction(
 
     if (tempElement)
     {
-
-        tempElement.innerHTML =
+        tempElement.textContent =
             predictedTemp.toFixed(2)
             +
             " °C";
-
     }
 
 
     if (humElement)
     {
-
-        humElement.innerHTML =
+        humElement.textContent =
             predictedHum.toFixed(2)
             +
             " %";
-
     }
-
 }
 
 
-/* ==================================================
-   DỰ ĐOÁN TUYẾN TÍNH
-================================================== */
+/* =====================================================
+   LINEAR PREDICTION
+===================================================== */
 
 function linearPrediction(
     values
 )
 {
-
     const n =
         values.length;
 
@@ -1585,7 +1343,6 @@ function linearPrediction(
         i++
     )
     {
-
         xSum += i;
 
         ySum += values[i];
@@ -1595,7 +1352,6 @@ function linearPrediction(
 
         xSquareSum +=
             i * i;
-
     }
 
 
@@ -1608,9 +1364,7 @@ function linearPrediction(
         denominator === 0
     )
     {
-
         return values[n - 1];
-
     }
 
 
@@ -1636,36 +1390,59 @@ function linearPrediction(
         slope * n +
         intercept
     );
-
 }
 
 
-/* ==================================================
-   THỜI GIAN
-================================================== */
+/* =====================================================
+   TIME
+===================================================== */
 
-function formatTime(
+function getRelativeTime(
     timestamp
 )
 {
-
     if (!timestamp)
     {
         return "--";
     }
 
 
-    return new Date(
-        Number(timestamp)
-    ).toLocaleTimeString(
-        "vi-VN",
-        {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        }
-    );
+    const elapsed =
+        Math.floor(
+            (
+                Date.now() -
+                Number(timestamp)
+            )
+            /
+            1000
+        );
 
+
+    if (elapsed < 2)
+    {
+        return "Vừa cập nhật";
+    }
+
+
+    if (elapsed < 60)
+    {
+        return (
+            elapsed +
+            " giây trước"
+        );
+    }
+
+
+    const minutes =
+        Math.floor(
+            elapsed / 60
+        );
+
+
+    return (
+        minutes +
+        " phút trước"
+    );
 }
 
 
@@ -1673,7 +1450,6 @@ function formatDate(
     date
 )
 {
-
     if (!date)
     {
         return "";
@@ -1703,196 +1479,80 @@ function formatDate(
         +
         parts[0]
     );
-
 }
 
 
-/* ==================================================
-   ĐỒNG HỒ "CẬP NHẬT BAO LÂU TRƯỚC"
-================================================== */
-
-/*
- * Quan trọng:
- *
- * lastUpdate không còn đứng yên.
- *
- * Ví dụ ESP32 gửi lúc 22:10:05
- *
- * 22:10:05 → "Vừa cập nhật"
- * 22:10:10 → "5 giây trước"
- * 22:10:30 → "25 giây trước"
- * ...
- *
- * Khi quá 15 giây → Offline.
- */
+/* =====================================================
+   RUNNING STATUS UPDATE
+===================================================== */
 
 setInterval(
     () =>
     {
 
         if (!lastReceiveTime)
-            return;
-
-
-        const elapsed =
-            Date.now() -
-            lastReceiveTime;
-
-
-        /*
-         * Nếu quá 15 giây
-         * coi ESP32 ngoại tuyến.
-         */
-
-        if (
-            elapsed > 15000
-        )
         {
-
-            updateGlobalDeviceStatus({
-
-                lastUpdate:
-                    lastReceiveTime
-
-            });
-
+            return;
         }
 
 
-        /*
-         * Cập nhật chữ thời gian
-         * liên tục mà không cần F5.
-         */
+        const online =
+            (
+                Date.now() -
+                lastReceiveTime
+            )
+            <
+            15000;
 
-        updateRunningLastUpdate();
+
+        updateIndexStatus(
+            online
+        );
+
+
+        updateDashboardStatus(
+            online
+        );
+
+
+        updateHistoryStatus(
+            online
+        );
+
+
+        const lastUpdate =
+            document.getElementById(
+                "lastUpdate"
+            );
+
+
+        if (lastUpdate)
+        {
+            lastUpdate.textContent =
+                getRelativeTime(
+                    lastReceiveTime
+                );
+        }
 
     },
     1000
 );
 
 
-/* ==================================================
-   HIỂN THỊ THỜI GIAN CHẠY LIÊN TỤC
-================================================== */
+/* =====================================================
+   CLOSE SSE WHEN PAGE LEAVES
+===================================================== */
 
-function updateRunningLastUpdate()
-{
-
-    if (!lastReceiveTime)
-        return;
-
-
-    const elapsed =
-        Math.floor(
-            (
-                Date.now() -
-                lastReceiveTime
-            )
-            /
-            1000
-        );
-
-
-    let text;
-
-
-    if (
-        elapsed < 2
-    )
+window.addEventListener(
+    "beforeunload",
+    () =>
     {
+        if (eventSource)
+        {
+            eventSource.close();
 
-        text =
-            "Vừa cập nhật";
-
+            eventSource =
+                null;
+        }
     }
-
-    else if (
-        elapsed < 60
-    )
-    {
-
-        text =
-            elapsed +
-            " giây trước";
-
-    }
-
-    else
-    {
-
-        const minutes =
-            Math.floor(
-                elapsed / 60
-            );
-
-
-        text =
-            minutes +
-            " phút trước";
-
-    }
-
-
-    const lastUpdate =
-        document.getElementById(
-            "lastUpdate"
-        );
-
-
-    if (lastUpdate)
-    {
-
-        lastUpdate.innerHTML =
-            text;
-
-    }
-
-
-    const lastSeen =
-        document.getElementById(
-            "lastSeen"
-        );
-
-
-    if (lastSeen)
-    {
-
-        lastSeen.innerHTML =
-            "Cập nhật: " +
-            text;
-
-    }
-
-
-    const dashboardLastSeen =
-        document.getElementById(
-            "dashboardLastSeen"
-        );
-
-
-    if (dashboardLastSeen)
-    {
-
-        dashboardLastSeen.innerHTML =
-            "Cập nhật: " +
-            text;
-
-    }
-
-
-    const historyLastSeen =
-        document.getElementById(
-            "historyLastSeen"
-        );
-
-
-    if (historyLastSeen)
-    {
-
-        historyLastSeen.innerHTML =
-            "Cập nhật: " +
-            text;
-
-    }
-
-}
+);

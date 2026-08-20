@@ -1,561 +1,587 @@
-/* =====================================
-   SMART IOT MOBILE APP STYLE
-   ESP32 + DHT22
-===================================== */
+/* =========================================
+   SMART IOT
+   MOBILE RESPONSIVE
+   ESP32-C3 + AHT30
+========================================= */
 
 
-@media(max-width:768px){
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+    body {
+
+        background:
+            linear-gradient(
+                160deg,
+                #07111f,
+                #132d46
+            );
+
+    }
 
 
-/* =========================
-   GLOBAL
-========================= */
+    .container {
+
+        display: block;
+
+    }
 
 
-body{
+    /* =====================================
+       FLOATING NAVIGATION
+    ===================================== */
 
-    background:
-    linear-gradient(
-        160deg,
-        #07111f,
-        #132d46
-    );
+    .sidebar {
+
+        position: fixed;
+
+        left: 14px;
+
+        top: 50%;
+
+        transform:
+            translateY(-50%);
+
+        width: auto;
+
+        padding: 0;
+
+        background: none;
+
+        border: none;
+
+        z-index: 1000;
+
+    }
+
+
+    .logo,
+    .device-box {
+
+        display: none;
+
+    }
+
+
+    .menu {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 13px;
+
+    }
+
+
+    .menu a {
+
+        width: 50px;
+
+        height: 50px;
+
+        padding: 0;
+
+        border-radius: 50%;
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+        background:
+            rgba(255,255,255,0.11);
+
+        backdrop-filter:
+            blur(12px);
+
+        border:
+            1px solid rgba(255,255,255,0.08);
+
+        box-shadow:
+            0 6px 22px
+            rgba(0,0,0,0.35);
+
+        font-size: 0;
+
+        transition:
+            0.25s;
+
+    }
+
+
+    .menu a:hover {
+
+        transform:
+            scale(1.05);
+
+    }
+
+
+    .menu a i {
+
+        width: auto;
+
+        font-size: 20px;
+
+        margin: 0;
+
+    }
+
+
+    .menu a.active {
+
+        background:
+            #00e5ff;
+
+        color:
+            #00131c;
+
+        box-shadow:
+            0 5px 20px
+            rgba(0,229,255,0.25);
+
+    }
+
+
+    /* =====================================
+       MAIN
+    ===================================== */
+
+    .main {
+
+        display: block;
+
+        width: 100%;
+
+        padding:
+            18px
+            15px
+            30px
+            78px;
+
+    }
+
+
+    .main-content {
+
+        width: 100%;
+
+    }
+
+
+    /* =====================================
+       HEADER
+    ===================================== */
+
+    .header {
+
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 13px;
+
+        margin-bottom: 18px;
+
+    }
+
+
+    .header h1 {
+
+        font-size: 25px;
+
+        line-height: 1.25;
+
+    }
+
+
+    .header p {
+
+        font-size: 14px;
+
+        line-height: 1.5;
+
+    }
+
+
+    .status {
+
+        width: 100%;
+
+        text-align: center;
+
+        padding: 11px 12px;
+
+        font-size: 14px;
+
+    }
+
+
+    /* =====================================
+       INTRO
+    ===================================== */
+
+    .intro-panel {
+
+        gap: 14px;
+
+        padding: 18px;
+
+        border-radius: 17px;
+
+    }
+
+
+    .intro-icon {
+
+        width: 50px;
+
+        height: 50px;
+
+        font-size: 21px;
+
+        border-radius: 14px;
+
+    }
+
+
+    .intro-panel h2 {
+
+        font-size: 18px;
+
+        line-height: 1.3;
+
+    }
+
+
+    .intro-panel p {
+
+        font-size: 13px;
+
+        line-height: 1.6;
+
+        margin-top: 7px;
+
+    }
+
+
+    /* =====================================
+       FEATURE
+    ===================================== */
+
+    .feature-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 12px;
+
+    }
+
+
+    .feature-card {
+
+        padding: 20px 16px;
+
+    }
+
+
+    .feature-card i {
+
+        font-size: 24px;
+
+    }
+
+
+    /* =====================================
+       CARDS
+    ===================================== */
+
+    .cards {
+
+        grid-template-columns:
+            1fr 1fr;
+
+        gap: 11px;
+
+        margin-top: 18px;
+
+    }
+
+
+    .card {
+
+        padding: 16px;
+
+        min-width: 0;
+
+        border-radius: 16px;
+
+    }
+
+
+    .card-title {
+
+        font-size: 13px;
+
+        line-height: 1.35;
+
+    }
+
+
+    .card-value {
+
+        font-size: 27px;
+
+        margin: 13px 0;
+
+    }
+
+
+    .card p {
+
+        font-size: 12px;
+
+    }
+
+
+    /* =====================================
+       PANELS
+    ===================================== */
+
+    .panel {
+
+        margin-top: 16px;
+
+        padding: 16px;
+
+        border-radius: 17px;
+
+    }
+
+
+    .panel-title {
+
+        font-size: 16px;
+
+        line-height: 1.35;
+
+        margin-bottom: 13px;
+
+    }
+
+
+    /* =====================================
+       CHART
+    ===================================== */
+
+    .chart-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 14px;
+
+    }
+
+
+    .chart-small {
+
+        height: 210px;
+
+    }
+
+
+    .history-chart-container {
+
+        height: 260px;
+
+    }
+
+
+    /* =====================================
+       STATUS
+    ===================================== */
+
+    .status-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 10px;
+
+    }
+
+
+    .status-item {
+
+        padding: 16px;
+
+        border-radius: 14px;
+
+    }
+
+
+    .status-item h3 {
+
+        font-size: 14px;
+
+    }
+
+
+    .status-item p {
+
+        font-size: 19px;
+
+    }
+
+
+    /* =====================================
+       HISTORY TABLE
+    ===================================== */
+
+    .history-table-wrapper {
+
+        overflow-x: auto;
+
+        -webkit-overflow-scrolling:
+            touch;
+
+    }
+
+
+    table {
+
+        min-width: 560px;
+
+        font-size: 13px;
+
+    }
+
+
+    th,
+    td {
+
+        padding:
+            10px
+            8px;
+
+    }
 
 }
 
 
-.container{
-
-    display:block;
-
-}
-
-
-
-
-/* =========================
-   FLOAT MENU
-========================= */
-
-
-.sidebar{
-
-    position:fixed;
-
-    left:15px;
-
-    top:50%;
-
-    transform:translateY(-50%);
-
-    width:auto;
-
-    padding:0;
-
-    background:none;
-
-    border:none;
-
-    z-index:1000;
-
-}
-
-
-
-.logo,
-.device-box{
-
-    display:none;
-
-}
-
-
-
-.menu{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:15px;
-
-}
-
-
-
-.menu a{
-
-
-    width:52px;
-
-    height:52px;
-
-    border-radius:50%;
-
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-
-    padding:0;
-
-
-    background:
-
-    rgba(255,255,255,0.12);
-
-
-    backdrop-filter:blur(10px);
-
-
-    box-shadow:
-    0 5px 20px rgba(0,0,0,0.4);
-
-
-    font-size:0;
-
-}
-
-
-
-.menu a i{
-
-    font-size:22px;
-
-    margin:0;
-
-}
-
-
-
-.menu a.active{
-
-    background:#00e5ff;
-
-    color:#00131c;
-
-}
-
-
-
-
-
-
-/* =========================
-   MAIN
-========================= */
-
-
-.main{
-
-    padding:15px 15px 20px 80px;
-
-}
-
-
-
-
-/* =========================
-   HEADER
-========================= */
-
-
-.header{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:flex-start;
-
-    gap:12px;
-
-}
-
-
-
-.header h1{
-
-    font-size:28px;
-
-    line-height:1.2;
-
-}
-
-
-.header p{
-
-    font-size:15px;
-
-    color:#aab7c4;
-
-}
-
-
-.status{
-
-
-    width:100%;
-
-    text-align:center;
-
-    padding:12px;
-
-
-    font-size:16px;
-
-
-    background:
-
-    rgba(0,255,130,0.15);
-
-
-    border:
-    1px solid rgba(0,255,130,0.4);
-
-}
-
-
-
-
-
-/* =========================
-   CARDS
-========================= */
-
-
-.cards{
-
-
-    display:grid;
-
-
-    grid-template-columns:1fr 1fr;
-
-
-    gap:12px;
-
-
-    margin-top:20px;
-
-
-}
-
-
-
-
-.card{
-
-
-    padding:18px;
-
-
-    min-height:130px;
-
-
-    background:
-
-
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,0.18),
-        rgba(255,255,255,0.05)
-    );
-
-
-    border-radius:18px;
-
-
-}
-
-
-
-
-.card-title{
-
-
-    font-size:14px;
-
-
-    color:#d0d8df;
-
-
-}
-
-
-
-
-.card-value{
-
-
-    font-size:32px;
-
-
-    margin:15px 0;
-
-
-    font-weight:700;
-
-
-}
-
-
-
-
-.card:nth-child(1)
-.card-value{
-
-    color:#ffcc66;
-
-}
-
-
-
-.card:nth-child(2)
-.card-value{
-
-    color:#55d9ff;
-
-}
-
-
-
-
-
-/* =========================
-   PANELS
-========================= */
-
-
-.panel{
-
-
-    margin-top:18px;
-
-
-    padding:18px;
-
-
-    background:
-
-
-    rgba(255,255,255,0.12);
-
-
-    border-radius:20px;
-
-
-}
-
-
-
-.panel-title{
-
-
-    font-size:20px;
-
-
-    font-weight:600;
-
-
-    margin-bottom:15px;
-
-
-}
-
-
-
-
-
-/* =========================
-   STATUS
-========================= */
-
-
-.status-grid{
-
-
-    display:grid;
-
-
-    grid-template-columns:1fr;
-
-
-    gap:12px;
-
-
-}
-
-
-
-.status-item{
-
-
-    padding:18px;
-
-
-    background:
-
-
-    rgba(0,0,0,0.25);
-
-
-    border-radius:15px;
-
-
-}
-
-
-
-.status-item h3{
-
-
-    font-size:15px;
-
-
-    color:#b8c5d1;
-
-
-}
-
-
-
-.status-item p{
-
-
-    font-size:22px;
-
-
-    margin-top:8px;
-
-
-}
-
-
-
-
-
-/* =========================
-   CHART
-========================= */
-
-
-.chart-box{
-
-
-    height:240px;
-
-
-}
-
-
-
-
-
-/* =========================
-   HISTORY TABLE
-========================= */
-
-
-.panel:has(table){
-
-    overflow-x:auto;
-
-}
-
-
-
-table{
-
-    min-width:550px;
-
-}
-
-
-
-th,td{
-
-
-    font-size:14px;
-
-    padding:12px;
-
-}
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-/* =================================
+/* =========================================
    VERY SMALL PHONE
-================================= */
+========================================= */
+
+@media (max-width: 420px) {
+
+    .main {
+
+        padding-left:
+            72px;
+
+        padding-right:
+            12px;
+
+    }
 
 
-@media(max-width:420px){
+    .menu {
+
+        gap: 11px;
+
+    }
 
 
+    .menu a {
 
-.main{
+        width: 45px;
 
-    padding-left:75px;
+        height: 45px;
 
-}
-
-
-
-.header h1{
-
-    font-size:24px;
-
-}
+    }
 
 
+    .menu a i {
 
-.cards{
+        font-size: 18px;
 
-    grid-template-columns:1fr;
-
-}
-
+    }
 
 
-.card-value{
+    .header h1 {
 
-    font-size:30px;
+        font-size: 22px;
 
-}
-
-
-
-.menu a{
+    }
 
 
-    width:46px;
+    .header p {
 
-    height:46px;
+        font-size: 13px;
+
+    }
 
 
-}
+    .cards {
+
+        grid-template-columns:
+            1fr;
+
+    }
 
 
-.menu a i{
+    .card-value {
 
-    font-size:19px;
+        font-size: 29px;
 
-}
+    }
 
+
+    .intro-panel {
+
+        flex-direction:
+            column;
+
+    }
+
+
+    .intro-icon {
+
+        width: 46px;
+
+        height: 46px;
+
+    }
+
+
+    .panel {
+
+        padding: 14px;
+
+    }
+
+
+    .chart-small {
+
+        height: 195px;
+
+    }
+
+
+    .history-chart-container {
+
+        height: 230px;
+
+    }
 
 }

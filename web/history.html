@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+      content="width=device-width, initial-scale=1.0">
 
 <title>Lịch sử dữ liệu</title>
 
@@ -14,15 +14,19 @@ content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="mobile.css">
 
 <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
+
 <body>
 
 <div class="container">
+
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -71,8 +75,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
             <h3>Thiết bị ESP32-C3</h3>
 
-            <br>
-
             <p id="historyDeviceStatus">
 
                 <i class="fa-solid fa-circle"></i>
@@ -81,14 +83,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
 
             </p>
 
-            <p>Cảm biến AHT30</p>
-
-            <br>
+            <p>
+                Cảm biến AHT30
+            </p>
 
             <small id="historyLastSeen">
-
                 Chưa nhận dữ liệu
-
             </small>
 
         </div>
@@ -96,161 +96,159 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     </aside>
 
 
+    <!-- MAIN -->
+
     <main class="main">
 
-        <header class="header">
-
-            <div>
-
-                <h1>
-                    Lịch sử dữ liệu
-                </h1>
-
-                <p>
-                    Dữ liệu môi trường trong 30 ngày gần nhất
-                </p>
-
-            </div>
+        <div class="main-content">
 
 
-            <div class="status">
+            <!-- HEADER -->
 
-                30 ngày gần nhất
+            <header class="header">
 
-            </div>
+                <div>
 
-        </header>
+                    <h1>
+                        Lịch sử dữ liệu
+                    </h1>
 
-
-        <!-- BIỂU ĐỒ -->
-
-        <section
-            class="panel history-chart-panel">
-
-            <div class="panel-title">
-
-                <i class="fa-solid fa-chart-line"></i>
-
-                Xu hướng nhiệt độ và độ ẩm
-
-            </div>
-
-
-            <div class="history-chart-container">
-
-                <canvas
-                    id="historyChart">
-                </canvas>
-
-            </div>
-
-        </section>
-
-
-        <!-- DỰ ĐOÁN -->
-
-        <section class="cards">
-
-            <div class="card">
-
-                <div class="card-title">
-
-                    🌡 Nhiệt độ dự đoán
+                    <p>
+                        Dữ liệu môi trường trong 30 ngày gần nhất
+                    </p>
 
                 </div>
 
 
-                <div
-                    class="card-value"
-                    id="predictTemp">
+                <div class="status">
 
-                    --
+                    30 ngày gần nhất
+
+                </div>
+
+            </header>
+
+
+            <!-- CHART -->
+
+            <section class="panel history-chart-panel">
+
+                <div class="panel-title">
+
+                    <i class="fa-solid fa-chart-line"></i>
+
+                    Xu hướng nhiệt độ và độ ẩm
 
                 </div>
 
 
-                <p>
-                    Dự đoán cho ngày mai
-                </p>
+                <div class="history-chart-container">
 
-            </div>
+                    <canvas id="historyChart"></canvas>
+
+                </div>
+
+            </section>
 
 
-            <div class="card">
+            <!-- PREDICTION -->
 
-                <div class="card-title">
+            <section class="cards prediction-cards">
 
-                    💧 Độ ẩm dự đoán
+
+                <div class="card">
+
+                    <div class="card-title">
+                        🌡 Nhiệt độ dự đoán
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="predictTemp">
+
+                        --
+
+                    </div>
+
+                    <p>
+                        Dự đoán cho ngày mai
+                    </p>
 
                 </div>
 
 
-                <div
-                    class="card-value"
-                    id="predictHum">
+                <div class="card">
 
-                    --
+                    <div class="card-title">
+                        💧 Độ ẩm dự đoán
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="predictHum">
+
+                        --
+
+                    </div>
+
+                    <p>
+                        Dự đoán cho ngày mai
+                    </p>
 
                 </div>
 
 
-                <p>
-                    Dự đoán cho ngày mai
-                </p>
-
-            </div>
-
-        </section>
+            </section>
 
 
-        <!-- BẢNG -->
+            <!-- TABLE -->
 
-        <section
-            class="panel history-table-panel">
+            <section class="panel history-table-panel">
 
-            <div class="panel-title">
+                <div class="panel-title">
 
-                <i class="fa-solid fa-table"></i>
+                    <i class="fa-solid fa-table"></i>
 
-                Bảng dữ liệu lịch sử
+                    Bảng dữ liệu lịch sử
 
-            </div>
-
-
-            <div class="history-table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Ngày
-                            </th>
-
-                            <th>
-                                Nhiệt độ trung bình
-                            </th>
-
-                            <th>
-                                Độ ẩm trung bình
-                            </th>
-
-                        </tr>
-
-                    </thead>
+                </div>
 
 
-                    <tbody
-                        id="historyTable">
-                    </tbody>
+                <div class="history-table-wrapper">
 
-                </table>
+                    <table>
 
-            </div>
+                        <thead>
 
-        </section>
+                            <tr>
+
+                                <th>
+                                    Ngày
+                                </th>
+
+                                <th>
+                                    Nhiệt độ trung bình
+                                </th>
+
+                                <th>
+                                    Độ ẩm trung bình
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="historyTable"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+        </div>
 
     </main>
 

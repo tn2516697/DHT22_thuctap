@@ -3,20 +3,20 @@
 
 <head>
 
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-    <title>Giám sát thời gian thực</title>
+<title>Giám sát thời gian thực</title>
 
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="mobile.css">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mobile.css">
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
@@ -26,9 +26,7 @@
 <div class="container">
 
 
-    <!-- =========================
-         THANH ĐIỀU HƯỚNG
-    ========================== -->
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -73,16 +71,9 @@
         </nav>
 
 
-        <!-- =========================
-             THIẾT BỊ
-        ========================== -->
-
         <div class="device-box">
 
             <h3>Thiết bị ESP32-C3</h3>
-
-            <br>
-
 
             <p id="dashboardDeviceStatus">
 
@@ -92,21 +83,12 @@
 
             </p>
 
-
             <p>
-
                 Cảm biến AHT30
-
             </p>
 
-
-            <br>
-
-
             <small id="dashboardLastSeen">
-
                 Chưa nhận dữ liệu
-
             </small>
 
         </div>
@@ -114,303 +96,232 @@
     </aside>
 
 
-
-    <!-- =========================
-         NỘI DUNG CHÍNH
-    ========================== -->
+    <!-- MAIN -->
 
     <main class="main">
 
-
-        <!-- HEADER -->
-
-        <header class="header">
-
-            <div>
-
-                <h1>
-                    Giám sát thời gian thực
-                </h1>
-
-                <p>
-                    Theo dõi nhiệt độ và độ ẩm từ cảm biến AHT30
-                </p>
-
-            </div>
+        <div class="main-content">
 
 
-            <div
-                class="status"
-                id="dashboardServerStatus">
+            <!-- HEADER -->
 
-                🔴 Đang chờ kết nối
+            <header class="header">
 
-            </div>
+                <div>
 
-        </header>
+                    <h1>
+                        Giám sát thời gian thực
+                    </h1>
 
-
-
-        <!-- =========================
-             GIÁ TRỊ HIỆN TẠI
-        ========================== -->
-
-        <section class="cards">
-
-
-            <!-- NHIỆT ĐỘ -->
-
-            <div class="card">
-
-                <div class="card-title">
-
-                    🌡️ Nhiệt độ
+                    <p>
+                        Theo dõi nhiệt độ và độ ẩm từ cảm biến AHT30
+                    </p>
 
                 </div>
 
 
                 <div
-                    class="card-value"
-                    id="dashboardTemp">
+                    class="status"
+                    id="dashboardServerStatus">
 
-                    -- °C
+                    🔴 Đang chờ kết nối
+
+                </div>
+
+            </header>
+
+
+            <!-- CURRENT VALUES -->
+
+            <section class="cards">
+
+
+                <div class="card">
+
+                    <div class="card-title">
+                        🌡️ Nhiệt độ
+                    </div>
+
+                    <div
+                        class="card-value"
+                        id="dashboardTemp">
+
+                        -- °C
+
+                    </div>
+
+                    <p class="normal">
+                        Giá trị hiện tại
+                    </p>
 
                 </div>
 
 
-                <p class="normal">
+                <div class="card">
 
-                    Giá trị hiện tại
+                    <div class="card-title">
+                        💧 Độ ẩm
+                    </div>
 
-                </p>
+                    <div
+                        class="card-value"
+                        id="dashboardHum">
 
-            </div>
+                        -- %
 
+                    </div>
 
-
-            <!-- ĐỘ ẨM -->
-
-            <div class="card">
-
-                <div class="card-title">
-
-                    💧 Độ ẩm
-
-                </div>
-
-
-                <div
-                    class="card-value"
-                    id="dashboardHum">
-
-                    -- %
+                    <p class="normal">
+                        Giá trị hiện tại
+                    </p>
 
                 </div>
 
 
-                <p class="normal">
+                <div class="card">
 
-                    Giá trị hiện tại
+                    <div class="card-title">
+                        🌀 Quạt làm mát
+                    </div>
 
-                </p>
+                    <div
+                        class="card-value"
+                        id="fanStatus">
 
-            </div>
+                        TẮT
 
+                    </div>
 
-
-            <!-- QUẠT -->
-
-            <div class="card">
-
-                <div class="card-title">
-
-                    🌀 Quạt làm mát
-
-                </div>
-
-
-                <div
-                    class="card-value"
-                    id="fanStatus">
-
-                    TẮT
+                    <p>
+                        Điều khiển qua rơ-le
+                    </p>
 
                 </div>
 
 
-                <p>
+                <div class="card">
 
-                    Điều khiển qua rơ-le
+                    <div class="card-title">
+                        🔔 Cảnh báo
+                    </div>
 
-                </p>
+                    <div
+                        class="card-value"
+                        id="alarmStatus">
 
-            </div>
+                        TẮT
 
+                    </div>
 
-
-            <!-- CẢNH BÁO -->
-
-            <div class="card">
-
-                <div class="card-title">
-
-                    🔔 Cảnh báo
-
-                </div>
-
-
-                <div
-                    class="card-value"
-                    id="alarmStatus">
-
-                    TẮT
+                    <p>
+                        Chế độ tự động
+                    </p>
 
                 </div>
 
 
-                <p>
-
-                    Chế độ tự động
-
-                </p>
-
-            </div>
-
-        </section>
+            </section>
 
 
+            <!-- REALTIME CHARTS -->
 
-        <!-- =========================
-             BIỂU ĐỒ 2 GIỜ GẦN NHẤT
-        ========================== -->
-
-        <section class="chart-grid">
+            <section class="chart-grid">
 
 
-            <!-- BIỂU ĐỒ NHIỆT ĐỘ -->
+                <div class="panel dashboard-chart-panel">
 
-            <div class="panel dashboard-chart-panel">
+                    <div class="panel-title">
+                        🌡️ Nhiệt độ trong 2 giờ gần nhất
+                    </div>
+
+                    <div class="chart-small">
+
+                        <canvas id="tempChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel dashboard-chart-panel">
+
+                    <div class="panel-title">
+                        💧 Độ ẩm trong 2 giờ gần nhất
+                    </div>
+
+                    <div class="chart-small">
+
+                        <canvas id="humidityChart"></canvas>
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- SYSTEM STATUS -->
+
+            <section class="panel monitoring-panel">
 
                 <div class="panel-title">
-
-                    🌡️ Nhiệt độ trong 2 giờ gần nhất
-
+                    Trạng thái hệ thống
                 </div>
 
 
-                <div class="chart-small">
+                <div class="status-grid">
 
-                    <canvas id="tempChart"></canvas>
+
+                    <div class="status-item">
+
+                        <h3>
+                            Vi điều khiển
+                        </h3>
+
+                        <p id="espRealtime">
+                            🔴 Ngoại tuyến
+                        </p>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <h3>
+                            Lần cập nhật gần nhất
+                        </h3>
+
+                        <p id="lastUpdate">
+                            --
+                        </p>
+
+                    </div>
+
+
+                    <div class="status-item">
+
+                        <h3>
+                            Truyền dữ liệu
+                        </h3>
+
+                        <p id="streamStatus">
+                            Đang chờ...
+                        </p>
+
+                    </div>
+
 
                 </div>
 
-            </div>
+            </section>
 
 
-
-            <!-- BIỂU ĐỒ ĐỘ ẨM -->
-
-            <div class="panel dashboard-chart-panel">
-
-                <div class="panel-title">
-
-                    💧 Độ ẩm trong 2 giờ gần nhất
-
-                </div>
-
-
-                <div class="chart-small">
-
-                    <canvas id="humidityChart"></canvas>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =========================
-             TRẠNG THÁI HỆ THỐNG
-        ========================== -->
-
-        <section class="panel monitoring-panel">
-
-            <div class="panel-title">
-
-                Trạng thái hệ thống
-
-            </div>
-
-
-            <div class="status-grid">
-
-
-                <!-- ESP32 -->
-
-                <div class="status-item">
-
-                    <h3>
-                        Vi điều khiển
-                    </h3>
-
-
-                    <p id="espRealtime">
-
-                        🔴 Ngoại tuyến
-
-                    </p>
-
-                </div>
-
-
-
-                <!-- LAST UPDATE -->
-
-                <div class="status-item">
-
-                    <h3>
-                        Lần cập nhật gần nhất
-                    </h3>
-
-
-                    <p id="lastUpdate">
-
-                        --
-
-                    </p>
-
-                </div>
-
-
-
-                <!-- STREAM -->
-
-                <div class="status-item">
-
-                    <h3>
-                        Truyền dữ liệu
-                    </h3>
-
-
-                    <p id="streamStatus">
-
-                        Đang chờ...
-
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
-
+        </div>
 
     </main>
 
 </div>
-
 
 
 <script src="script.js"></script>

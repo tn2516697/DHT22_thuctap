@@ -1,6 +1,7 @@
 // ======================================
 // SMART ENVIRONMENT MONITORING SERVER
-// ESP32-C3 Super Mini + AHT30 + PostgreSQL
+// ESP32 + AHT30 + PostgreSQL
+// Render: Web + API + Database
 // ======================================
 
 require("dotenv").config();
@@ -15,24 +16,52 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 
-/* ==========================
-   MIDDLEWARE
-========================== */
+// =====================================================
+// PATH
+// =====================================================
+
+const WEB_DIR = path.join(__dirname, "../web");
+
+
+// =====================================================
+// MIDDLEWARE
+// =====================================================
 
 app.use(cors());
 
 app.use(express.json());
 
+
+// Không cache các file giao diện.
+// Giúp sau khi deploy phiên bản mới,
+// trình duyệt không giữ HTML/CSS/JS cũ.
 app.use(
-    express.static(
-        path.join(__dirname, "../web")
-    )
+    express.static(WEB_DIR, {
+        etag: false,
+        maxAge: 0,
+        setHeaders: (res) => {
+            res.setHeader(
+                "Cache-Control",
+                "no-store, no-cache, must-revalidate, proxy-revalidate"
+            );
+
+            res.setHeader(
+                "Pragma",
+                "no-cache"
+            );
+
+            res.setHeader(
+                "Expires",
+                "0"
+            );
+        }
+    })
 );
 
 
-/* ==========================
-   POSTGRESQL
-========================== */
+// =====================================================
+// POSTGRESQL
+// =====================================================
 
 const pool = new Pool({
 
@@ -48,6 +77,10 @@ const pool = new Pool({
 });
 
 
+// =====================================================
+// DATABASE CONNECTION
+// =====================================================
+
 pool.connect()
 
 .then(client => {
@@ -58,19 +91,19 @@ pool.connect()
 
 })
 
-.catch(err => {
+.catch(error => {
 
-    console.log(
-        "Database error:",
-        err.message
+    console.error(
+        "❌ PostgreSQL connection error:",
+        error.message
     );
 
 });
 
 
-/* ==========================
-   DATABASE TABLE
-========================== */
+// =====================================================
+// DATABASE TABLE
+// =====================================================
 
 async function createTable()
 {
@@ -80,18 +113,52 @@ async function createTable()
         (
             id SERIAL PRIMARY KEY,
 
-            temperature REAL,
+            temperature REAL NOT NULL,
 
-            humidity REAL,
+            humidity REAL NOT NULL,
 
             fan BOOLEAN DEFAULT false,
 
             buzzer BOOLEAN DEFAULT false,
 
-            timestamp TIMESTAMPTZ NOT NULL
+            timestamp TIMESTAMPTZ NOT NULL,
+
+            received_at TIMESTAMPTZ DEFAULT NOW()
         )
 
     `);
+
+
+    /*
+     * Nếu bảng sensor_data cũ đã tồn tại
+     * nhưng chưa có received_at thì thêm cột.
+     */
+
+    await pool.query(`
+
+        ALTER TABLE sensor_data
+
+        ADD COLUMN IF NOT EXISTS
+        received_at TIMESTAMPTZ DEFAULT NOW()
+
+    `);
+
+
+    /*
+     * Những bản ghi cũ chưa có received_at
+     * sẽ được lấy timestamp làm giá trị tạm thời.
+     */
+
+    await pool.query(`
+
+        UPDATE sensor_data
+
+        SET received_at = timestamp
+
+        WHERE received_at IS NULL
+
+    `);
+
 
     console.log("✅ sensor_data ready");
 }
@@ -105,11 +172,11 @@ async function createTable()
 
     }
 
-    catch(err) {
+    catch(error) {
 
         console.error(
-            "Create table error:",
-            err
+            "❌ Create table error:",
+            error.message
         );
 
     }
@@ -117,41 +184,26 @@ async function createTable()
 })();
 
 
-/* ==========================
-   LATEST DATA
-========================== */
-
-let latestData = {
-
-    temperature: 0,
-
-    humidity: 0,
-
-    fan: false,
-
-    buzzer: false,
-
-    timestamp: null,
-
-    lastUpdate: null
-
-};
-
-
-/* ==========================
-   SSE CLIENTS
-========================== */
+// =====================================================
+// SSE CLIENTS
+// =====================================================
 
 let clients = [];
 
 
-/* ==========================
-   SAVE SENSOR DATA
-========================== */
+// =====================================================
+// LATEST DATA
+// =====================================================
+
+let latestData = null;
+
+
+// =====================================================
+// SAVE SENSOR DATA
+// =====================================================
 
 async function saveSensorData(data)
 {
-
     if (
         data.temperature === undefined ||
         data.humidity === undefined
@@ -169,6 +221,18 @@ async function saveSensorData(data)
     const humidity =
         Number(data.humidity);
 
+
+    if (
+        !Number.isFinite(temperature) ||
+        !Number.isFinite(humidity)
+    )
+    {
+        throw new Error(
+            "Nhiệt độ hoặc độ ẩm không hợp lệ"
+        );
+    }
+
+
     const fan =
         Boolean(data.fan);
 
@@ -180,134 +244,153 @@ async function saveSensorData(data)
 
 
     /*
-       Nếu ESP32 gửi timestamp
-       → dùng timestamp của ESP32.
-
-       Nếu không có
-       → dùng thời gian server.
-    */
+     * timestamp:
+     * thời gian đo của ESP32.
+     */
 
     if (data.timestamp)
     {
-
         timestamp =
             new Date(data.timestamp);
-
 
         if (
             isNaN(timestamp.getTime())
         )
         {
-
             timestamp =
                 new Date();
-
         }
-
     }
-
     else
     {
-
         timestamp =
             new Date();
-
     }
 
 
-    /* ==========================
-       LƯU DATABASE
-    ========================== */
+    /*
+     * received_at:
+     * thời điểm Render thực sự nhận dữ liệu.
+     *
+     * Đây mới là thời gian dùng để
+     * xác định ESP32 Online / Offline.
+     */
 
-    await pool.query(
+    const receivedAt =
+        new Date();
 
-        `
-        INSERT INTO sensor_data
-        (
-            temperature,
-            humidity,
-            fan,
-            buzzer,
-            timestamp
-        )
 
-        VALUES
-        ($1,$2,$3,$4,$5)
-        `,
+    const result =
+        await pool.query(
 
-        [
-            temperature,
-            humidity,
-            fan,
-            buzzer,
-            timestamp
-        ]
+            `
+            INSERT INTO sensor_data
+            (
+                temperature,
+                humidity,
+                fan,
+                buzzer,
+                timestamp,
+                received_at
+            )
 
-    );
+            VALUES
+            ($1,$2,$3,$4,$5,$6)
+
+            RETURNING
+                id,
+                temperature,
+                humidity,
+                fan,
+                buzzer,
+                timestamp,
+                received_at
+            `,
+
+            [
+                temperature,
+                humidity,
+                fan,
+                buzzer,
+                timestamp,
+                receivedAt
+            ]
+
+        );
+
+
+    const row =
+        result.rows[0];
 
 
     return {
 
-        temperature,
+        id:
+            row.id,
 
-        humidity,
+        temperature:
+            Number(row.temperature),
 
-        fan,
+        humidity:
+            Number(row.humidity),
 
-        buzzer,
+        fan:
+            row.fan,
+
+        buzzer:
+            row.buzzer,
 
         timestamp:
-            timestamp.toISOString(),
-
-        /*
-         * Thời điểm server nhận dữ liệu.
-         * Dùng để xác định ESP32 Online/Offline.
-         */
+            new Date(
+                row.timestamp
+            ).toISOString(),
 
         lastUpdate:
-            Date.now()
+            new Date(
+                row.received_at
+            ).getTime()
 
     };
-
 }
 
 
-/* ==========================
-   GỬI SSE
-========================== */
+// =====================================================
+// BROADCAST SSE
+// =====================================================
 
 function broadcast(data)
 {
+    const message =
+        `data:${JSON.stringify(data)}\n\n`;
 
-    clients.forEach(
-        client => {
 
-            try {
+    clients =
+        clients.filter(
+            client => {
 
-                client.write(
-                    `data:${JSON.stringify(data)}\n\n`
-                );
+                try {
+
+                    client.write(message);
+
+                    return true;
+
+                }
+
+                catch(error) {
+
+                    return false;
+
+                }
 
             }
-
-            catch(error) {
-
-                console.log(
-                    "SSE client error"
-                );
-
-            }
-
-        }
-    );
-
+        );
 }
 
 
-/* ==========================
-   POST /data
-   ESP32 GỬI DỮ LIỆU
-========================== */
+// =====================================================
+// POST /data
+// ESP32 → RENDER
+// =====================================================
 
 app.post(
     "/data",
@@ -319,9 +402,11 @@ app.post(
                 req.body;
 
 
-            /* ==========================
-               MỘT BẢN GHI
-            ========================== */
+            /*
+             * ==========================================
+             * MỘT BẢN GHI
+             * ==========================================
+             */
 
             if (
                 !Array.isArray(data)
@@ -329,7 +414,7 @@ app.post(
             {
 
                 console.log(
-                    "ESP32-C3:",
+                    "ESP32:",
                     data
                 );
 
@@ -351,21 +436,25 @@ app.post(
 
                 return res.json({
 
-                    status: "OK",
+                    status:
+                        "OK",
 
-                    count: 1
+                    count:
+                        1
 
                 });
 
             }
 
 
-            /* ==========================
-               NHIỀU BẢN GHI
-            ========================== */
+            /*
+             * ==========================================
+             * NHIỀU BẢN GHI
+             * ==========================================
+             */
 
             console.log(
-                `ESP32-C3: nhận ${data.length} bản ghi`
+                `ESP32: nhận ${data.length} bản ghi`
             );
 
 
@@ -376,16 +465,19 @@ app.post(
 
                 return res.json({
 
-                    status: "OK",
+                    status:
+                        "OK",
 
-                    count: 0
+                    count:
+                        0
 
                 });
 
             }
 
 
-            let lastSaved = null;
+            let lastSaved =
+                null;
 
 
             for (
@@ -407,24 +499,20 @@ app.post(
                 latestData =
                     lastSaved;
 
+                broadcast(
+                    latestData
+                );
+
             }
-
-
-            /*
-             * Chỉ gửi bản ghi cuối cùng
-             * qua SSE.
-             */
-
-            broadcast(
-                latestData
-            );
 
 
             return res.json({
 
-                status: "OK",
+                status:
+                    "OK",
 
-                count: data.length
+                count:
+                    data.length
 
             });
 
@@ -433,9 +521,139 @@ app.post(
         catch(error)
         {
 
-            console.log(
+            console.error(
                 "POST /data ERROR:",
-                error
+                error.message
+            );
+
+
+            return res
+                .status(500)
+                .json({
+
+                    error:
+                        error.message
+
+                });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// GET /data
+// LẤY BẢN GHI MỚI NHẤT TỪ DATABASE
+// =====================================================
+
+app.get(
+    "/data",
+    async (req,res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+
+                    SELECT
+
+                        id,
+
+                        temperature,
+
+                        humidity,
+
+                        fan,
+
+                        buzzer,
+
+                        timestamp,
+
+                        received_at
+
+                    FROM sensor_data
+
+                    ORDER BY
+                        received_at DESC
+
+                    LIMIT 1
+
+                `);
+
+
+            if (
+                result.rows.length === 0
+            )
+            {
+
+                return res.json({
+
+                    temperature: 0,
+
+                    humidity: 0,
+
+                    fan: false,
+
+                    buzzer: false,
+
+                    timestamp: null,
+
+                    lastUpdate: null
+
+                });
+
+            }
+
+
+            const row =
+                result.rows[0];
+
+
+            const data = {
+
+                id:
+                    row.id,
+
+                temperature:
+                    Number(row.temperature),
+
+                humidity:
+                    Number(row.humidity),
+
+                fan:
+                    row.fan,
+
+                buzzer:
+                    row.buzzer,
+
+                timestamp:
+                    new Date(
+                        row.timestamp
+                    ).toISOString(),
+
+                lastUpdate:
+                    new Date(
+                        row.received_at
+                    ).getTime()
+
+            };
+
+
+            latestData =
+                data;
+
+
+            res.json(data);
+
+        }
+
+        catch(error)
+        {
+
+            console.error(
+                "GET /data ERROR:",
+                error.message
             );
 
 
@@ -454,26 +672,10 @@ app.post(
 );
 
 
-/* ==========================
-   GET /data
-========================== */
-
-app.get(
-    "/data",
-    (req,res) => {
-
-        res.json(
-            latestData
-        );
-
-    }
-);
-
-
-/* ==========================
-   GET /realtime
-   2 GIỜ GẦN NHẤT
-========================== */
+// =====================================================
+// GET /realtime
+// 2 GIỜ GẦN NHẤT
+// =====================================================
 
 app.get(
     "/realtime",
@@ -516,9 +718,9 @@ app.get(
         catch(error)
         {
 
-            console.log(
+            console.error(
                 "Realtime error:",
-                error
+                error.message
             );
 
 
@@ -537,13 +739,13 @@ app.get(
 );
 
 
-/* ==========================
-   SSE /events
-========================== */
+// =====================================================
+// SSE /events
+// =====================================================
 
 app.get(
     "/events",
-    (req,res) => {
+    async (req,res) => {
 
         res.writeHead(
             200,
@@ -553,33 +755,125 @@ app.get(
                     "text/event-stream",
 
                 "Cache-Control":
-                    "no-cache",
+                    "no-cache, no-store, must-revalidate",
 
                 "Connection":
-                    "keep-alive"
+                    "keep-alive",
+
+                "X-Accel-Buffering":
+                    "no"
 
             }
         );
 
 
         /*
-         * Gửi dữ liệu hiện tại
+         * Giữ kết nối sống.
          */
 
-        if (latestData.lastUpdate)
+        res.write(": connected\n\n");
+
+
+        clients.push(res);
+
+
+        /*
+         * Lấy dữ liệu mới nhất từ database
+         * khi trình duyệt vừa kết nối.
+         */
+
+        try {
+
+            const result =
+                await pool.query(`
+
+                    SELECT
+
+                        id,
+
+                        temperature,
+
+                        humidity,
+
+                        fan,
+
+                        buzzer,
+
+                        timestamp,
+
+                        received_at
+
+                    FROM sensor_data
+
+                    ORDER BY
+                        received_at DESC
+
+                    LIMIT 1
+
+                `);
+
+
+            if (
+                result.rows.length > 0
+            )
+            {
+
+                const row =
+                    result.rows[0];
+
+
+                const data = {
+
+                    id:
+                        row.id,
+
+                    temperature:
+                        Number(row.temperature),
+
+                    humidity:
+                        Number(row.humidity),
+
+                    fan:
+                        row.fan,
+
+                    buzzer:
+                        row.buzzer,
+
+                    timestamp:
+                        new Date(
+                            row.timestamp
+                        ).toISOString(),
+
+                    lastUpdate:
+                        new Date(
+                            row.received_at
+                        ).getTime()
+
+                };
+
+
+                res.write(
+                    `data:${JSON.stringify(data)}\n\n`
+                );
+
+            }
+
+        }
+
+        catch(error)
         {
 
-            res.write(
-                `data:${JSON.stringify(
-                    latestData
-                )}\n\n`
+            console.error(
+                "SSE initial data error:",
+                error.message
             );
 
         }
 
 
-        clients.push(res);
-
+        /*
+         * Client đóng kết nối.
+         */
 
         req.on(
             "close",
@@ -598,10 +892,10 @@ app.get(
 );
 
 
-/* ==========================
-   HISTORY
-   30 NGÀY
-========================== */
+// =====================================================
+// HISTORY
+// 30 NGÀY
+// =====================================================
 
 app.get(
     "/history",
@@ -618,20 +912,17 @@ app.get(
                             timestamp
                             AT TIME ZONE
                             'Asia/Ho_Chi_Minh'
-                        )::date
-                        AS date,
+                        )::date AS date,
 
                         ROUND(
                             AVG(temperature)::numeric,
                             2
-                        )
-                        AS avg_temperature,
+                        ) AS avg_temperature,
 
                         ROUND(
                             AVG(humidity)::numeric,
                             2
-                        )
-                        AS avg_humidity
+                        ) AS avg_humidity
 
                     FROM sensor_data
 
@@ -639,6 +930,7 @@ app.get(
                         NOW() - INTERVAL '30 days'
 
                     GROUP BY
+
                         (
                             timestamp
                             AT TIME ZONE
@@ -660,9 +952,9 @@ app.get(
         catch(error)
         {
 
-            console.log(
+            console.error(
                 "History error:",
-                error
+                error.message
             );
 
 
@@ -681,9 +973,60 @@ app.get(
 );
 
 
-/* ==========================
-   HOME
-========================== */
+// =====================================================
+// HEALTH CHECK
+// =====================================================
+
+app.get(
+    "/health",
+    async (req,res) => {
+
+        try {
+
+            await pool.query(
+                "SELECT 1"
+            );
+
+
+            res.json({
+
+                status:
+                    "OK",
+
+                server:
+                    "Render",
+
+                database:
+                    "PostgreSQL"
+
+            });
+
+        }
+
+        catch(error)
+        {
+
+            res
+                .status(500)
+                .json({
+
+                    status:
+                        "ERROR",
+
+                    error:
+                        error.message
+
+                });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// HOME
+// =====================================================
 
 app.get(
     "/",
@@ -691,8 +1034,8 @@ app.get(
 
         res.sendFile(
             path.join(
-                __dirname,
-                "../web/index.html"
+                WEB_DIR,
+                "index.html"
             )
         );
 
@@ -700,9 +1043,9 @@ app.get(
 );
 
 
-/* ==========================
-   404
-========================== */
+// =====================================================
+// 404
+// =====================================================
 
 app.use(
     (req,res) => {
@@ -720,9 +1063,9 @@ app.use(
 );
 
 
-/* ==========================
-   START SERVER
-========================== */
+// =====================================================
+// START SERVER
+// =====================================================
 
 app.listen(
     PORT,
@@ -730,7 +1073,7 @@ app.listen(
     () => {
 
         console.log(
-            `🚀 Server đang chạy tại cổng ${PORT}`
+            `🚀 Render server đang chạy tại port ${PORT}`
         );
 
     }
