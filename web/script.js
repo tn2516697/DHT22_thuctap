@@ -144,11 +144,6 @@ async function loadRealtimeHistory()
         );
 
 
-        /*
-         * Sau khi thêm dữ liệu xong
-         * mới update biểu đồ.
-         */
-
         if (tempChart)
         {
             tempChart.update("none");
@@ -202,13 +197,10 @@ function createRealtimeCharts()
     }
 
 
-    /*
-     * Nếu chart cũ tồn tại thì hủy trước.
-     */
-
     if (tempChart)
     {
         tempChart.destroy();
+
         tempChart = null;
     }
 
@@ -216,6 +208,7 @@ function createRealtimeCharts()
     if (humidityChart)
     {
         humidityChart.destroy();
+
         humidityChart = null;
     }
 
@@ -277,11 +270,6 @@ function createRealtimeCharts()
 
                             ticks:
                             {
-                                /*
-                                 * Không để Chart.js
-                                 * tự chọn mốc.
-                                 */
-
                                 autoSkip: false,
 
                                 maxRotation: 0,
@@ -397,27 +385,20 @@ function createRealtimeCharts()
 ===================================================== */
 
 /*
- * Hiển thị đúng 6 mốc trong khoảng 2 giờ.
- *
- * 2 giờ = 120 phút
- *
- * 6 mốc:
- *
- * mốc 1
- * mốc 2
- * mốc 3
- * mốc 4
- * mốc 5
- * mốc 6
- *
- * Khoảng cách giữa các mốc = 20 phút.
- *
- * Quan trọng:
- * Phần này CHỈ thay đổi cách hiển thị
- * trục thời gian.
- *
- * Không thay đổi dữ liệu thu thập.
- */
+   HIỂN THỊ 6 MỐC THỜI GIAN
+
+   Khoảng hiển thị:
+   2 giờ = 120 phút
+
+   6 mốc:
+   1 ─ 20 ─ 40 ─ 60 ─ 80 ─ 100 phút
+
+   Các mốc được lấy từ chính vùng dữ liệu
+   đang hiển thị.
+
+   Phần này CHỈ ảnh hưởng cách hiển thị
+   trục X, KHÔNG ảnh hưởng việc thu thập dữ liệu.
+*/
 
 function getRealtimeAxisLabel(
     chart,
@@ -428,30 +409,28 @@ function getRealtimeAxisLabel(
         chart.data.labels;
 
 
-    if (!labels || labels.length === 0)
+    if (
+        !labels ||
+        labels.length === 0
+    )
     {
         return "";
     }
 
 
-    /*
-     * Chỉ hiển thị tối đa 6 mốc.
-     */
-
     const total =
         labels.length;
 
 
-    if (total <= 1)
+    if (total === 1)
     {
-        return labels[index];
+        return labels[0];
     }
 
 
     /*
-     * Chọn 6 vị trí trải đều
-     * trên toàn bộ vùng dữ liệu.
-     */
+       Chia đều vùng dữ liệu thành 6 vị trí.
+    */
 
     const positions = [];
 
@@ -477,9 +456,9 @@ function getRealtimeAxisLabel(
 
 
     /*
-     * Nếu vị trí hiện tại không phải
-     * một trong 6 vị trí thì không hiện.
-     */
+       Không phải 6 vị trí cần hiển thị
+       thì để trống.
+    */
 
     if (
         !positions.includes(index)
@@ -488,11 +467,6 @@ function getRealtimeAxisLabel(
         return "";
     }
 
-
-    /*
-     * labels đã được tạo dưới dạng
-     * HH:mm theo giờ Việt Nam.
-     */
 
     return labels[index];
 }
@@ -598,25 +572,135 @@ function connectSSE()
 
 
 /* =====================================================
-   VIETNAM TIME
+   VIETNAM TIME - FIX
 ===================================================== */
 
 /*
- * Chuyển timestamp từ server sang giờ Việt Nam.
- *
- * Việt Nam:
- * UTC + 7
- *
- * Dùng Intl.DateTimeFormat để tránh
- * phụ thuộc múi giờ của máy tính người dùng.
- */
+   Chuyển timestamp server -> giờ Việt Nam.
 
-function formatVietnamTime(
+   Xử lý được:
+
+   1. Unix timestamp milliseconds
+   2. Unix timestamp seconds
+   3. ISO có Z
+   4. ISO có +00:00
+   5. Timestamp không có timezone
+
+   Việt Nam = UTC+7
+*/
+
+function parseServerTimestamp(
     timestamp
 )
 {
+    if (
+        timestamp === null ||
+        timestamp === undefined ||
+        timestamp === ""
+    )
+    {
+        return null;
+    }
+
+
+    /* =============================================
+       TRƯỜNG HỢP UNIX TIMESTAMP
+    ============================================= */
+
+    if (
+        typeof timestamp === "number" ||
+        (
+            typeof timestamp === "string" &&
+            /^[0-9]+$/.test(timestamp)
+        )
+    )
+    {
+        let value =
+            Number(timestamp);
+
+
+        /*
+           Nếu timestamp là giây
+           thì chuyển sang milliseconds.
+        */
+
+        if (value < 100000000000)
+        {
+            value =
+                value * 1000;
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (
+            isNaN(
+                date.getTime()
+            )
+        )
+        {
+            return null;
+        }
+
+
+        return date;
+    }
+
+
+    /* =============================================
+       TRƯỜNG HỢP CHUỖI DATETIME
+    ============================================= */
+
+    let value =
+        String(timestamp).trim();
+
+
+    /*
+       Nếu server trả về:
+
+       2026-08-20 09:30:00
+
+       thì chuỗi này KHÔNG có timezone.
+
+       Render/PostgreSQL thường hoạt động UTC,
+       vì vậy ta xem nó là UTC.
+    */
+
+    if (
+        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/
+            .test(value)
+    )
+    {
+        value =
+            value.replace(
+                " ",
+                "T"
+            ) + "Z";
+    }
+
+
+    /*
+       Nếu dạng:
+
+       2026-08-20T09:30:00
+
+       cũng không có timezone.
+    */
+
+    else if (
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/
+            .test(value)
+    )
+    {
+        value =
+            value + "Z";
+    }
+
+
     const date =
-        new Date(timestamp);
+        new Date(value);
 
 
     if (
@@ -625,6 +709,35 @@ function formatVietnamTime(
         )
     )
     {
+        console.warn(
+            "Timestamp không hợp lệ:",
+            timestamp
+        );
+
+        return null;
+    }
+
+
+    return date;
+}
+
+
+/* =====================================================
+   FORMAT VIETNAM TIME
+===================================================== */
+
+function formatVietnamTime(
+    timestamp
+)
+{
+    const date =
+        parseServerTimestamp(
+            timestamp
+        );
+
+
+    if (!date)
+    {
         return "";
     }
 
@@ -632,13 +745,17 @@ function formatVietnamTime(
     return new Intl.DateTimeFormat(
         "vi-VN",
         {
-            timeZone: "Asia/Ho_Chi_Minh",
+            timeZone:
+                "Asia/Ho_Chi_Minh",
 
-            hour: "2-digit",
+            hour:
+                "2-digit",
 
-            minute: "2-digit",
+            minute:
+                "2-digit",
 
-            hour12: false
+            hour12:
+                false
         }
     ).format(date);
 }
@@ -662,33 +779,20 @@ function addRealtimePoint(
 
 
     const timestamp =
-        new Date(
+        parseServerTimestamp(
             data.timestamp
         );
 
 
-    if (
-        isNaN(
-            timestamp.getTime()
-        )
-    )
+    if (!timestamp)
     {
-        console.warn(
-            "Timestamp không hợp lệ:",
-            data.timestamp
-        );
-
         return;
     }
 
 
-    /*
-     * Lấy giờ Việt Nam.
-     */
-
     const time =
         formatVietnamTime(
-            timestamp
+            data.timestamp
         );
 
 
@@ -739,11 +843,9 @@ function addRealtimePoint(
 
 
     /*
-     * Chỉ giữ dữ liệu trong khoảng
-     * 2 giờ gần nhất theo số điểm.
-     *
-     * Đây KHÔNG phải thời gian thu thập.
-     */
+       Giữ dữ liệu như code hiện tại.
+       Không thay đổi tốc độ thu thập.
+    */
 
     removeOldRealtimeData();
 
@@ -764,16 +866,15 @@ function addRealtimePoint(
 function removeOldRealtimeData()
 {
     /*
-     * Không xóa dữ liệu quá sớm.
-     *
-     * ESP32 hiện tại gửi dữ liệu mỗi 3 giây.
-     *
-     * 2 giờ:
-     *
-     * 7200 / 3 = 2400 điểm
-     *
-     * Cho phép 2500 điểm để giữ gần 2 giờ.
-     */
+       ESP32 gửi khoảng 3 giây/lần.
+
+       2 giờ:
+
+       7200 / 3
+       = 2400 điểm
+
+       Giữ 2500 điểm.
+    */
 
     const maxPoints =
         2500;
