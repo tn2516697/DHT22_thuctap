@@ -1,9 +1,6 @@
 /* ============================================
    SMART ENVIRONMENT MONITORING
    ESP32 + AHT30 + PostgreSQL + Render
-
-   WEB:
-   https://dht22-thuctap.onrender.com
 ============================================ */
 
 
@@ -20,26 +17,12 @@ const SERVER_URL =
 ===================================================== */
 
 let tempChart = null;
-
 let humidityChart = null;
-
 let historyChart = null;
 
 let eventSource = null;
 
 let lastReceiveTime = 0;
-
-
-/* =====================================================
-   REALTIME CONFIG
-===================================================== */
-
-// Hiển thị dữ liệu trong 2 giờ gần nhất
-const REALTIME_WINDOW = 2 * 60 * 60 * 1000;
-
-// 6 mốc thời gian trong 2 giờ:
-// 0h, 20p, 40p, 60p, 80p, 100p
-const REALTIME_TICK_COUNT = 6;
 
 
 /* =====================================================
@@ -57,22 +40,19 @@ document.addEventListener(
         if (
             path === "/" ||
             path.includes("index.html")
-        )
-        {
+        ) {
             loadHome();
         }
 
         else if (
             path.includes("dashboard.html")
-        )
-        {
+        ) {
             loadDashboard();
         }
 
         else if (
             path.includes("history.html")
-        )
-        {
+        ) {
             loadHistory();
         }
 
@@ -140,47 +120,19 @@ async function loadRealtimeHistory()
     try
     {
         const data =
-            await apiFetch(
-                "/realtime"
-            );
+            await apiFetch("/realtime");
 
 
         if (!Array.isArray(data))
         {
-            console.warn(
-                "⚠ /realtime không trả về mảng"
+            console.error(
+                "API /realtime không trả về mảng"
             );
 
             return;
         }
 
 
-        console.log(
-            "📊 Realtime data:",
-            data
-        );
-
-
-        /*
-         * Xóa dữ liệu cũ trước khi nạp lại
-         */
-        if (tempChart)
-        {
-            tempChart.data.labels = [];
-            tempChart.data.datasets[0].data = [];
-        }
-
-
-        if (humidityChart)
-        {
-            humidityChart.data.labels = [];
-            humidityChart.data.datasets[0].data = [];
-        }
-
-
-        /*
-         * Nạp dữ liệu
-         */
         data.forEach(
             record =>
             {
@@ -193,17 +145,26 @@ async function loadRealtimeHistory()
 
 
         /*
-         * Sau khi nạp xong mới update
+         * Sau khi thêm dữ liệu xong
+         * mới update biểu đồ.
          */
-        tempChart?.update();
 
-        humidityChart?.update();
+        if (tempChart)
+        {
+            tempChart.update("none");
+        }
+
+
+        if (humidityChart)
+        {
+            humidityChart.update("none");
+        }
 
     }
     catch(error)
     {
         console.error(
-            "❌ Không thể tải dữ liệu realtime:",
+            "Không thể tải dữ liệu realtime:",
             error
         );
     }
@@ -233,11 +194,29 @@ function createRealtimeCharts()
         !humCanvas
     )
     {
-        console.warn(
-            "⚠ Không tìm thấy canvas biểu đồ"
+        console.error(
+            "Không tìm thấy canvas biểu đồ"
         );
 
         return;
+    }
+
+
+    /*
+     * Nếu chart cũ tồn tại thì hủy trước.
+     */
+
+    if (tempChart)
+    {
+        tempChart.destroy();
+        tempChart = null;
+    }
+
+
+    if (humidityChart)
+    {
+        humidityChart.destroy();
+        humidityChart = null;
     }
 
 
@@ -245,242 +224,202 @@ function createRealtimeCharts()
        TEMPERATURE CHART
     ================================================= */
 
-    if (!tempChart)
-    {
-        tempChart =
-            new Chart(
-                tempCanvas,
+    tempChart =
+        new Chart(
+            tempCanvas,
+            {
+
+                type: "line",
+
+                data:
                 {
+                    labels: [],
 
-                    type: "line",
+                    datasets:
+                    [
+                        {
+                            label:
+                                "Nhiệt độ (°C)",
 
-                    data:
+                            data: [],
+
+                            borderWidth: 2,
+
+                            tension: 0.3,
+
+                            pointRadius: 2,
+
+                            fill: false
+                        }
+                    ]
+                },
+
+                options:
+                {
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    animation: false,
+
+                    interaction:
                     {
-                        labels: [],
+                        mode: "index",
 
-                        datasets:
-                        [
-                            {
-                                label:
-                                    "Nhiệt độ (°C)",
-
-                                data: [],
-
-                                borderWidth: 2,
-
-                                tension: 0.3,
-
-                                pointRadius: 0,
-
-                                pointHoverRadius: 4,
-
-                                fill: false
-                            }
-                        ]
+                        intersect: false
                     },
 
-
-                    options:
+                    scales:
                     {
-                        responsive: true,
-
-                        maintainAspectRatio: false,
-
-                        animation: false,
-
-                        interaction:
+                        x:
                         {
-                            mode: "index",
+                            type: "category",
 
-                            intersect: false
-                        },
-
-
-                        scales:
-                        {
-                            x:
+                            ticks:
                             {
-                                type: "category",
+                                /*
+                                 * Không để Chart.js
+                                 * tự chọn mốc.
+                                 */
 
-                                ticks:
-                                {
-                                    /*
-                                     * Chỉ hiển thị 6 mốc
-                                     * nhưng KHÔNG xóa dữ liệu
-                                     */
-                                    autoSkip: false,
+                                autoSkip: false,
 
-                                    maxRotation: 0,
+                                maxRotation: 0,
 
-                                    minRotation: 0,
+                                minRotation: 0,
 
-                                    callback:
-                                        function(
-                                            value,
+                                callback:
+                                    function(
+                                        value,
+                                        index
+                                    )
+                                    {
+                                        return getRealtimeAxisLabel(
+                                            this.chart,
                                             index
-                                        )
-                                        {
-                                            return getRealtimeTickLabel(
-                                                this.chart,
-                                                index
-                                            );
-                                        }
-                                }
-                            },
-
-                            y:
-                            {
-                                beginAtZero: false
-                            }
-                        },
-
-
-                        plugins:
-                        {
-                            legend:
-                            {
-                                display: true
+                                        );
+                                    }
                             }
                         }
                     }
-
                 }
-            );
-    }
+
+            }
+        );
 
 
     /* =================================================
        HUMIDITY CHART
     ================================================= */
 
-    if (!humidityChart)
-    {
-        humidityChart =
-            new Chart(
-                humCanvas,
+    humidityChart =
+        new Chart(
+            humCanvas,
+            {
+
+                type: "line",
+
+                data:
                 {
+                    labels: [],
 
-                    type: "line",
+                    datasets:
+                    [
+                        {
+                            label:
+                                "Độ ẩm (%)",
 
-                    data:
+                            data: [],
+
+                            borderWidth: 2,
+
+                            tension: 0.3,
+
+                            pointRadius: 2,
+
+                            fill: false
+                        }
+                    ]
+                },
+
+                options:
+                {
+                    responsive: true,
+
+                    maintainAspectRatio: false,
+
+                    animation: false,
+
+                    interaction:
                     {
-                        labels: [],
+                        mode: "index",
 
-                        datasets:
-                        [
-                            {
-                                label:
-                                    "Độ ẩm (%)",
-
-                                data: [],
-
-                                borderWidth: 2,
-
-                                tension: 0.3,
-
-                                pointRadius: 0,
-
-                                pointHoverRadius: 4,
-
-                                fill: false
-                            }
-                        ]
+                        intersect: false
                     },
 
-
-                    options:
+                    scales:
                     {
-                        responsive: true,
-
-                        maintainAspectRatio: false,
-
-                        animation: false,
-
-                        interaction:
+                        x:
                         {
-                            mode: "index",
+                            type: "category",
 
-                            intersect: false
-                        },
-
-
-                        scales:
-                        {
-                            x:
+                            ticks:
                             {
-                                type: "category",
+                                autoSkip: false,
 
-                                ticks:
-                                {
-                                    /*
-                                     * Chỉ hiển thị 6 mốc
-                                     */
-                                    autoSkip: false,
+                                maxRotation: 0,
 
-                                    maxRotation: 0,
+                                minRotation: 0,
 
-                                    minRotation: 0,
-
-                                    callback:
-                                        function(
-                                            value,
+                                callback:
+                                    function(
+                                        value,
+                                        index
+                                    )
+                                    {
+                                        return getRealtimeAxisLabel(
+                                            this.chart,
                                             index
-                                        )
-                                        {
-                                            return getRealtimeTickLabel(
-                                                this.chart,
-                                                index
-                                            );
-                                        }
-                                }
-                            },
-
-                            y:
-                            {
-                                beginAtZero: false
-                            }
-                        },
-
-
-                        plugins:
-                        {
-                            legend:
-                            {
-                                display: true
+                                        );
+                                    }
                             }
                         }
                     }
-
                 }
-            );
-    }
+
+            }
+        );
 }
 
 
 /* =====================================================
-   REALTIME TICK LABEL
+   REALTIME AXIS LABEL
 ===================================================== */
 
 /*
- * Hàm này CHỈ quyết định cách hiển thị
- * thời gian trên trục X.
+ * Hiển thị đúng 6 mốc trong khoảng 2 giờ.
  *
- * Nó KHÔNG ảnh hưởng đến dữ liệu.
+ * 2 giờ = 120 phút
  *
- * Ví dụ:
+ * 6 mốc:
  *
- * 15:00
- * 15:20
- * 15:40
- * 16:00
- * 16:20
- * 16:40
+ * mốc 1
+ * mốc 2
+ * mốc 3
+ * mốc 4
+ * mốc 5
+ * mốc 6
  *
- * Dữ liệu bên trong biểu đồ vẫn có thể
- * được lấy mỗi 3 giây.
+ * Khoảng cách giữa các mốc = 20 phút.
+ *
+ * Quan trọng:
+ * Phần này CHỈ thay đổi cách hiển thị
+ * trục thời gian.
+ *
+ * Không thay đổi dữ liệu thu thập.
  */
 
-function getRealtimeTickLabel(
+function getRealtimeAxisLabel(
     chart,
     index
 )
@@ -489,29 +428,29 @@ function getRealtimeTickLabel(
         chart.data.labels;
 
 
-    const total =
-        labels.length;
-
-
-    if (total === 0)
+    if (!labels || labels.length === 0)
     {
         return "";
     }
 
 
     /*
-     * Xác định 6 vị trí cần hiển thị.
-     *
-     * Ví dụ có 2400 điểm:
-     *
-     * 0
-     * 480
-     * 960
-     * 1440
-     * 1920
-     * 2399
-     *
-     * Tương ứng khoảng 20 phút / mốc.
+     * Chỉ hiển thị tối đa 6 mốc.
+     */
+
+    const total =
+        labels.length;
+
+
+    if (total <= 1)
+    {
+        return labels[index];
+    }
+
+
+    /*
+     * Chọn 6 vị trí trải đều
+     * trên toàn bộ vùng dữ liệu.
      */
 
     const positions = [];
@@ -519,7 +458,7 @@ function getRealtimeTickLabel(
 
     for (
         let i = 0;
-        i < REALTIME_TICK_COUNT;
+        i < 6;
         i++
     )
     {
@@ -527,14 +466,20 @@ function getRealtimeTickLabel(
             Math.round(
                 i *
                 (total - 1) /
-                (REALTIME_TICK_COUNT - 1)
+                5
             );
+
 
         positions.push(
             position
         );
     }
 
+
+    /*
+     * Nếu vị trí hiện tại không phải
+     * một trong 6 vị trí thì không hiện.
+     */
 
     if (
         !positions.includes(index)
@@ -545,67 +490,11 @@ function getRealtimeTickLabel(
 
 
     /*
-     * Lấy timestamp thực tế
-     * tương ứng với điểm này.
-     */
-    const timestamp =
-        chart._realtimeTimestamps
-        ? chart._realtimeTimestamps[index]
-        : null;
-
-
-    if (timestamp)
-    {
-        return formatTime(
-            timestamp
-        );
-    }
-
-
-    /*
-     * Fallback:
-     * nếu không có timestamp,
-     * dùng chính label.
+     * labels đã được tạo dưới dạng
+     * HH:mm theo giờ Việt Nam.
      */
 
-    return labels[index] || "";
-}
-
-
-/* =====================================================
-   FORMAT TIME
-===================================================== */
-
-function formatTime(
-    timestamp
-)
-{
-    const date =
-        new Date(
-            timestamp
-        );
-
-
-    if (
-        isNaN(
-            date.getTime()
-        )
-    )
-    {
-        return "";
-    }
-
-
-    return date.toLocaleTimeString(
-        "vi-VN",
-        {
-            hour: "2-digit",
-
-            minute: "2-digit",
-
-            hour12: false
-        }
-    );
+    return labels[index];
 }
 
 
@@ -615,11 +504,6 @@ function formatTime(
 
 function connectSSE()
 {
-    /*
-     * Không tạo nhiều SSE connection
-     * trên cùng một trang.
-     */
-
     if (eventSource)
     {
         return;
@@ -688,7 +572,7 @@ function connectSSE()
             catch(error)
             {
                 console.error(
-                    "❌ SSE data error:",
+                    "SSE data error:",
                     error
                 );
             }
@@ -710,6 +594,53 @@ function connectSSE()
                 }
             );
         };
+}
+
+
+/* =====================================================
+   VIETNAM TIME
+===================================================== */
+
+/*
+ * Chuyển timestamp từ server sang giờ Việt Nam.
+ *
+ * Việt Nam:
+ * UTC + 7
+ *
+ * Dùng Intl.DateTimeFormat để tránh
+ * phụ thuộc múi giờ của máy tính người dùng.
+ */
+
+function formatVietnamTime(
+    timestamp
+)
+{
+    const date =
+        new Date(timestamp);
+
+
+    if (
+        isNaN(
+            date.getTime()
+        )
+    )
+    {
+        return "";
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "vi-VN",
+        {
+            timeZone: "Asia/Ho_Chi_Minh",
+
+            hour: "2-digit",
+
+            minute: "2-digit",
+
+            hour12: false
+        }
+    ).format(date);
 }
 
 
@@ -743,7 +674,7 @@ function addRealtimePoint(
     )
     {
         console.warn(
-            "⚠ Timestamp không hợp lệ:",
+            "Timestamp không hợp lệ:",
             data.timestamp
         );
 
@@ -752,27 +683,29 @@ function addRealtimePoint(
 
 
     /*
-     * Giữ timestamp riêng cho từng biểu đồ.
-     *
-     * Timestamp dùng để tạo nhãn HH:MM.
-     * Không dùng timestamp làm trục X.
+     * Lấy giờ Việt Nam.
      */
 
-    if (tempChart)
-    {
-        if (!tempChart._realtimeTimestamps)
-        {
-            tempChart._realtimeTimestamps = [];
-        }
-
-
-        tempChart.data.labels.push(
-            formatTime(timestamp)
+    const time =
+        formatVietnamTime(
+            timestamp
         );
 
 
-        tempChart._realtimeTimestamps.push(
-            timestamp
+    if (!time)
+    {
+        return;
+    }
+
+
+    /* =================================================
+       TEMPERATURE
+    ================================================= */
+
+    if (tempChart)
+    {
+        tempChart.data.labels.push(
+            time
         );
 
 
@@ -785,21 +718,14 @@ function addRealtimePoint(
     }
 
 
+    /* =================================================
+       HUMIDITY
+    ================================================= */
+
     if (humidityChart)
     {
-        if (!humidityChart._realtimeTimestamps)
-        {
-            humidityChart._realtimeTimestamps = [];
-        }
-
-
         humidityChart.data.labels.push(
-            formatTime(timestamp)
-        );
-
-
-        humidityChart._realtimeTimestamps.push(
-            timestamp
+            time
         );
 
 
@@ -813,83 +739,72 @@ function addRealtimePoint(
 
 
     /*
-     * Chỉ giữ dữ liệu trong 2 giờ.
+     * Chỉ giữ dữ liệu trong khoảng
+     * 2 giờ gần nhất theo số điểm.
+     *
+     * Đây KHÔNG phải thời gian thu thập.
      */
-    removeOldRealtimeData(
-        timestamp
-    );
+
+    removeOldRealtimeData();
 
 
     if (updateChart)
     {
-        tempChart?.update();
+        tempChart?.update("none");
 
-        humidityChart?.update();
+        humidityChart?.update("none");
     }
 }
 
 
 /* =====================================================
-   KEEP 2 HOURS
+   KEEP REALTIME DATA
 ===================================================== */
 
-function removeOldRealtimeData(
-    currentTimestamp
-)
+function removeOldRealtimeData()
 {
-    const currentTime =
-        new Date(
-            currentTimestamp
-        ).getTime();
-
-
-    const oldestAllowed =
-        currentTime -
-        REALTIME_WINDOW;
-
-
     /*
-     * TEMPERATURE
+     * Không xóa dữ liệu quá sớm.
+     *
+     * ESP32 hiện tại gửi dữ liệu mỗi 3 giây.
+     *
+     * 2 giờ:
+     *
+     * 7200 / 3 = 2400 điểm
+     *
+     * Cho phép 2500 điểm để giữ gần 2 giờ.
      */
+
+    const maxPoints =
+        2500;
+
 
     if (tempChart)
     {
         while (
-            tempChart._realtimeTimestamps &&
-            tempChart._realtimeTimestamps.length > 0 &&
-            tempChart._realtimeTimestamps[0].getTime() <
-            oldestAllowed
+            tempChart.data.labels.length >
+            maxPoints
         )
         {
             tempChart.data.labels.shift();
 
             tempChart.data.datasets[0]
                 .data.shift();
-
-            tempChart._realtimeTimestamps.shift();
         }
     }
 
 
-    /*
-     * HUMIDITY
-     */
-
     if (humidityChart)
     {
         while (
-            humidityChart._realtimeTimestamps &&
-            humidityChart._realtimeTimestamps.length > 0 &&
-            humidityChart._realtimeTimestamps[0].getTime() <
-            oldestAllowed
+            humidityChart.data.labels.length >
+            maxPoints
         )
         {
             humidityChart.data.labels.shift();
 
             humidityChart.data.datasets[0]
                 .data.shift();
-
-            humidityChart._realtimeTimestamps.shift();
         }
     }
 }
@@ -1030,9 +945,7 @@ function updateGlobalDeviceStatus(
 
 
     const online =
-        isDeviceOnline(
-            data
-        );
+        isDeviceOnline(data);
 
 
     updateIndexStatus(
@@ -1327,10 +1240,6 @@ async function loadHistory()
         );
 
 
-        /*
-         * Lấy trạng thái mới nhất của ESP32
-         */
-
         try
         {
             const latest =
@@ -1353,10 +1262,6 @@ async function loadHistory()
         }
 
 
-        /*
-         * Kết nối SSE
-         */
-
         connectSSE();
 
     }
@@ -1378,20 +1283,14 @@ async function loadHistory()
         if (table)
         {
             table.innerHTML = `
-
                 <tr>
-
                     <td
                         colspan="3"
                         style="text-align:center;"
                     >
-
                         Không thể tải dữ liệu lịch sử
-
                     </td>
-
                 </tr>
-
             `;
         }
     }
@@ -1458,7 +1357,6 @@ function createHistoryChart(
 
                     datasets:
                     [
-
                         {
                             label:
                                 "Nhiệt độ trung bình (°C)",
@@ -1492,10 +1390,8 @@ function createHistoryChart(
                             pointRadius:
                                 3
                         }
-
                     ]
                 },
-
 
                 options:
                 {
@@ -1517,7 +1413,6 @@ function createHistoryChart(
                             false
                     },
 
-
                     plugins:
                     {
                         legend:
@@ -1526,7 +1421,6 @@ function createHistoryChart(
                                 "top"
                         }
                     },
-
 
                     scales:
                     {
@@ -1584,7 +1478,6 @@ function createHistoryTable(
 
 
                 row.innerHTML = `
-
                     <td>
                         ${formatDate(
                             item.date
@@ -1604,7 +1497,6 @@ function createHistoryTable(
                         ).toFixed(2)}
                         %
                     </td>
-
                 `;
 
 
@@ -1683,15 +1575,6 @@ function formatDate(
         return "";
     }
 
-
-    /*
-     * Server đã trả về dạng:
-     *
-     * DD/MM/YYYY
-     *
-     * nên không cần chuyển đổi
-     * qua JavaScript Date.
-     */
 
     return String(date);
 }
